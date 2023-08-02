@@ -4,10 +4,8 @@ mod syntax;
 mod vec_line_gen;
 mod code_parser;
 
-use std::f64::consts::TAU;
 use eframe::{egui};
-use eframe::egui::{remap};
-use eframe::egui::plot::{Line, Plot, PlotPoint, PlotPoints};
+use eframe::egui::plot::{Line, Plot, PlotPoints};
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
 use crate::syntax::vec_op_syntax;
