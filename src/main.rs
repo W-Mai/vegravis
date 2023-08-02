@@ -2,8 +2,10 @@
 
 mod syntax;
 
+use std::f64::consts::TAU;
 use eframe::{egui};
-use eframe::egui::{Sense, Vec2, Widget};
+use eframe::egui::{remap};
+use eframe::egui::plot::{Line, Plot, PlotPoints};
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
 use crate::syntax::vec_op_syntax;
@@ -53,12 +55,21 @@ impl eframe::App for MainApp {
                             .size(Size::relative(0.5))
                             .horizontal(|mut strip| {
                                 strip.cell(|ui| {
-                                    let (_response, painter) =
-                                        ui.allocate_painter(Vec2::new(ui.available_width(), 300.0), Sense::hover());
-                                    painter.add(egui::Shape::line_segment(
-                                        [egui::Pos2::new(0.0, 0.0), egui::Pos2::new(100.0, 100.0)],
-                                        (1.0, egui::Color32::WHITE),
-                                    ));
+                                    let plot = Plot::new("plot").data_aspect(1.0);
+                                    plot.show(ui, |plot_ui| {
+                                        let n = 512;
+                                        let circle_points: PlotPoints = (0..=n)
+                                            .map(|i| {
+                                                let t = remap(i as f64, 0.0..=(n as f64), 0.0..=TAU);
+                                                let r = 10.0;
+                                                [
+                                                    r * t.cos() + 10.0f64,
+                                                    r * t.sin() + 10.0f64,
+                                                ]
+                                            })
+                                            .collect();
+                                        plot_ui.line(Line::new(circle_points).color(egui::Color32::RED));
+                                    });
                                 });
                                 strip.cell(|ui| {
                                     CodeEditor::default()
