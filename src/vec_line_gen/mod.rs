@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use eframe::egui::plot::{PlotPoint};
 
 pub enum VecOpsType {
@@ -16,22 +17,18 @@ pub enum VecOps {
     VecOpEnd,
 }
 
-impl From<String> for VecOpsType {
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "move" => VecOpsType::VecOpMove,
-            "line" => VecOpsType::VecOpLine,
-            "quad" => VecOpsType::VecOpQuad,
-            "cubi" => VecOpsType::VecOpCubi,
-            "end" => VecOpsType::VecOpEnd,
-            _ => panic!("Invalid VecOps"),
-        }
-    }
-}
+impl FromStr for VecOpsType {
+    type Err = ();
 
-impl From<&str> for VecOpsType {
-    fn from(value: &str) -> Self {
-        value.to_owned().into()
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "move" => Ok(VecOpsType::VecOpMove),
+            "line" => Ok(VecOpsType::VecOpLine),
+            "quad" => Ok(VecOpsType::VecOpQuad),
+            "cubi" => Ok(VecOpsType::VecOpCubi),
+            "end" => Ok(VecOpsType::VecOpEnd),
+            _ => Err(()),
+        }
     }
 }
 

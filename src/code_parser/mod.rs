@@ -107,15 +107,16 @@ impl CodeParser {
     }
 
     fn parse_op(&mut self) -> Result<VecOps, ParseError> {
-        let op_type: VecOpsType = self.read_ident().into();
+        let op_type = self.read_ident().parse();
         self.eat_comma()?;
-        Ok(match op_type {
-            VecOpsType::VecOpMove => self.parse_move()?,
-            VecOpsType::VecOpLine => self.parse_line()?,
-            VecOpsType::VecOpQuad => self.parse_quad()?,
-            VecOpsType::VecOpCubi => self.parse_cubi()?,
-            VecOpsType::VecOpEnd => self.parse_end()?,
-        })
+        match op_type {
+            Ok(VecOpsType::VecOpMove) => self.parse_move(),
+            Ok(VecOpsType::VecOpLine) => self.parse_line(),
+            Ok(VecOpsType::VecOpQuad) => self.parse_quad(),
+            Ok(VecOpsType::VecOpCubi) => self.parse_cubi(),
+            Ok(VecOpsType::VecOpEnd) => self.parse_end(),
+            _ => Err(ParseError { msg: "Invalid op type".to_owned(), cursor: self.cursor.clone() }),
+        }
     }
 
     fn parse_move(&mut self) -> Result<VecOps, ParseError> {
