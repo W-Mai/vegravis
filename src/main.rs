@@ -5,7 +5,7 @@ mod syntax;
 use std::f64::consts::TAU;
 use eframe::{egui};
 use eframe::egui::{remap};
-use eframe::egui::plot::{Line, Plot, PlotPoints};
+use eframe::egui::plot::{Line, Plot, PlotPoint, PlotPoints};
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
 use crate::syntax::vec_op_syntax;
@@ -69,6 +69,10 @@ impl eframe::App for MainApp {
                                             })
                                             .collect();
                                         plot_ui.line(Line::new(circle_points).color(egui::Color32::RED));
+                                        plot_ui.line(Line::new(MainApp::gen_line(PlotPoint::from([10.0, 10.0]), PlotPoint::from([10.0, 300.0]))).color(egui::Color32::GREEN));
+                                        plot_ui.line(Line::new(MainApp::gen_line(PlotPoint::from([10.0, 300.0]), PlotPoint::from([300.0, 300.0]))).color(egui::Color32::GREEN));
+                                        plot_ui.line(Line::new(MainApp::gen_line(PlotPoint::from([300.0, 300.0]), PlotPoint::from([300.0, 10.0]))).color(egui::Color32::GREEN));
+                                        plot_ui.line(Line::new(MainApp::gen_line(PlotPoint::from([300.0, 10.0]), PlotPoint::from([10.0, 10.0]))).color(egui::Color32::GREEN));
                                     });
                                 });
                                 strip.cell(|ui| {
@@ -85,5 +89,19 @@ impl eframe::App for MainApp {
                     });
                 });
         });
+    }
+}
+
+impl MainApp {
+    fn gen_line(start: PlotPoint, end: PlotPoint) -> PlotPoints {
+        let n = 512;
+        let points: PlotPoints = (0..=n).map(|i| {
+            let t = remap(i as f64, 0.0..=(n as f64), 0.0..=1.0);
+            let x = start.x + (end.x - start.x) * t;
+            let y = start.y + (end.y - start.y) * t;
+            [x, y]
+        }).collect();
+
+        points
     }
 }

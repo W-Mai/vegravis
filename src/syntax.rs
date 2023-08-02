@@ -11,7 +11,8 @@ pub fn vec_op_syntax() -> Syntax {
             "MOVE",
             "LINE",
             "QUAD",
-            "CUBI"
+            "CUBI",
+            "END"
         ]),
         types: HashSet::from([]),
         special: HashSet::from([]),
