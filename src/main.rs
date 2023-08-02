@@ -4,11 +4,12 @@ mod syntax;
 mod vec_line_gen;
 mod code_parser;
 
-use log::{debug, error, log_enabled, info, Level};
+use log::error;
 use eframe::{egui};
 use eframe::egui::plot::{Line, Plot, PlotPoints};
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
+use crate::code_parser::ParseError;
 use crate::syntax::vec_op_syntax;
 use crate::vec_line_gen::VecLineGen;
 
@@ -34,6 +35,8 @@ struct MainAppCache {
 
 struct MainApp {
     code: String,
+    error: Option<ParseError>,
+
     cache: MainAppCache,
 }
 
@@ -45,6 +48,7 @@ impl Default for MainApp {
                 code: "".to_owned(),
                 lines: vec![],
             },
+            error: None,
         }
     }
 }
@@ -55,6 +59,7 @@ impl eframe::App for MainApp {
             StripBuilder::new(ui)
                 .size(Size::exact(30.0))
                 .size(Size::remainder())
+                .size(Size::exact(30.0))
                 .vertical(|mut strip| {
                     strip.cell(|ui| {
                         ui.vertical_centered(|ui| {
@@ -74,12 +79,14 @@ impl eframe::App for MainApp {
 
                                             match parser.parse() {
                                                 Ok(parsed) => {
+                                                    self.error = None;
                                                     let mut vlg = VecLineGen::new(parsed);
                                                     self.cache.lines = vlg.gen();
                                                     self.cache.code = self.code.clone();
                                                 }
                                                 Err(e) => {
                                                     error!("Error: {:?}", e);
+                                                    self.error = Some(e);
                                                     return;
                                                 }
                                             }
@@ -100,6 +107,17 @@ impl eframe::App for MainApp {
                                         .show(ui, &mut self.code);
                                 })
                             });
+                    });
+                    strip.cell(|ui| {
+                        ui.vertical_centered(|ui| {
+                            ui.horizontal(|ui| {
+                                let info = self.error.as_ref().map_or_else(|| "".to_owned(), |e| {
+                                    format!("Error: {:?}", e)
+                                });
+
+                                ui.label(info);
+                            });
+                        });
                     });
                 });
         });

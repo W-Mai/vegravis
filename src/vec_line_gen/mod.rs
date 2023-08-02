@@ -1,4 +1,4 @@
-use eframe::egui::plot::{PlotPoint, PlotPoints};
+use eframe::egui::plot::{PlotPoint};
 
 pub enum VecOpsType {
     VecOpMove,
