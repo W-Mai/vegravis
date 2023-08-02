@@ -10,7 +10,7 @@ impl CodeParser {
         Self { code, cursor: 0 }
     }
 
-    fn parse_ident(&mut self) -> String {
+    fn read_ident(&mut self) -> String {
         let mut ident = String::new();
         while self.cursor < self.code.len() {
             let c = self.code.chars().nth(self.cursor).unwrap();
@@ -24,7 +24,7 @@ impl CodeParser {
         ident
     }
 
-    fn parse_number(&mut self) -> f64 {
+    fn read_number(&mut self) -> f64 {
         let mut number = String::new();
         while self.cursor < self.code.len() {
             let c = self.code.chars().nth(self.cursor).unwrap();
@@ -73,7 +73,7 @@ impl CodeParser {
     }
 
     fn parse_op(&mut self) -> VecOps {
-        let op_type: VecOpsType = self.parse_ident().into();
+        let op_type: VecOpsType = self.read_ident().into();
         self.eat_comma();
         match op_type {
             VecOpsType::VecOpMove => self.parse_move(),
@@ -85,51 +85,51 @@ impl CodeParser {
     }
 
     fn parse_move(&mut self) -> VecOps {
-        let x = self.parse_number();
+        let x = self.read_number();
         self.eat_comma();
-        let y = self.parse_number();
+        let y = self.read_number();
         self.eat_comma();
         VecOps::VecOpMove(x, y)
     }
 
     fn parse_line(&mut self) -> VecOps {
-        let x = self.parse_number();
+        let x = self.read_number();
         self.eat_comma();
-        let y = self.parse_number();
+        let y = self.read_number();
         self.eat_comma();
         VecOps::VecOpLine(x, y)
     }
 
     fn parse_quad(&mut self) -> VecOps {
-        let x1 = self.parse_number();
+        let x1 = self.read_number();
         self.eat_comma();
-        let y1 = self.parse_number();
+        let y1 = self.read_number();
         self.eat_comma();
-        let x2 = self.parse_number();
+        let x2 = self.read_number();
         self.eat_comma();
-        let y2 = self.parse_number();
+        let y2 = self.read_number();
         self.eat_comma();
         VecOps::VecOpQuad(x1, y1, x2, y2)
     }
 
     fn parse_cubi(&mut self) -> VecOps {
-        let x1 = self.parse_number();
+        let x1 = self.read_number();
         self.eat_comma();
-        let y1 = self.parse_number();
+        let y1 = self.read_number();
         self.eat_comma();
-        let x2 = self.parse_number();
+        let x2 = self.read_number();
         self.eat_comma();
-        let y2 = self.parse_number();
+        let y2 = self.read_number();
         self.eat_comma();
-        let x3 = self.parse_number();
+        let x3 = self.read_number();
         self.eat_comma();
-        let y3 = self.parse_number();
+        let y3 = self.read_number();
         self.eat_comma();
         VecOps::VecOpCubi(x1, y1, x2, y2, x3, y3)
     }
 
     fn parse_end(&mut self) -> VecOps {
-        self.parse_ident();
+        self.read_ident();
         VecOps::VecOpEnd
     }
 }
