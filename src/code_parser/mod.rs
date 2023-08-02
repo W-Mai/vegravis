@@ -1,22 +1,52 @@
 use crate::vec_line_gen::{VecOps, VecOpsType};
 
+#[derive(Debug)]
+pub struct Cursor {
+    pub row: usize,
+    pub col: usize,
+    pub pos: usize,
+}
+
+#[derive(Debug)]
+pub struct ParseError {
+    pub msg: String,
+    pub cursor: Cursor,
+}
+
 pub struct CodeParser {
     pub code: String,
-    pub cursor: usize,
+    pub cursor: Cursor,
 }
 
 impl CodeParser {
     pub fn new(code: String) -> Self {
-        Self { code, cursor: 0 }
+        Self { code, cursor: Cursor { row: 0, col: 0, pos: 0 } }
+    }
+
+    fn cursor_next(&mut self, c: char) {
+        self.cursor.pos += 1;
+        self.cursor.col += 1;
+        if c == '\n' {
+            self.cursor.row += 1;
+            self.cursor.col = 0;
+        }
+    }
+
+    fn curr_pos(&self) -> usize {
+        self.cursor.pos
+    }
+
+    fn not_eof(&self) -> bool {
+        self.curr_pos() < self.code.len()
     }
 
     fn read_ident(&mut self) -> String {
         let mut ident = String::new();
-        while self.cursor < self.code.len() {
-            let c = self.code.chars().nth(self.cursor).unwrap();
+        while self.not_eof() {
+            let c = self.code.chars().nth(self.curr_pos()).unwrap();
             if c.is_alphanumeric() || c == '_' {
                 ident.push(c);
-                self.cursor += 1;
+                self.cursor_next(c);
             } else {
                 break;
             }
@@ -26,11 +56,11 @@ impl CodeParser {
 
     fn read_number(&mut self) -> f64 {
         let mut number = String::new();
-        while self.cursor < self.code.len() {
-            let c = self.code.chars().nth(self.cursor).unwrap();
+        while self.curr_pos() < self.code.len() {
+            let c = self.code.chars().nth(self.curr_pos()).unwrap();
             if c == '-' || c.is_numeric() || c == '.' {
                 number.push(c);
-                self.cursor += 1;
+                self.cursor_next(c);
             } else {
                 break;
             }
@@ -39,10 +69,10 @@ impl CodeParser {
     }
 
     fn eat_whitespace(&mut self) {
-        while self.cursor < self.code.len() {
-            let c = self.code.chars().nth(self.cursor).unwrap();
+        while self.curr_pos() < self.code.len() {
+            let c = self.code.chars().nth(self.curr_pos()).unwrap();
             if c.is_whitespace() {
-                self.cursor += 1;
+                self.cursor_next(c);
             } else {
                 break;
             }
@@ -51,10 +81,10 @@ impl CodeParser {
 
     fn eat_comma(&mut self) {
         self.eat_whitespace();
-        while self.cursor < self.code.len() {
-            let c = self.code.chars().nth(self.cursor).unwrap();
+        while self.curr_pos() < self.code.len() {
+            let c = self.code.chars().nth(self.curr_pos()).unwrap();
             if c == ',' {
-                self.cursor += 1;
+                self.cursor_next(c);
                 break;
             } else {
                 panic!("Expected comma");
@@ -65,7 +95,7 @@ impl CodeParser {
 
     pub fn parse(&mut self) -> Vec<VecOps> {
         let mut ops = Vec::new();
-        while self.cursor < self.code.len() {
+        while self.curr_pos() < self.code.len() {
             let op = self.parse_op();
             ops.push(op);
         }
