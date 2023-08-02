@@ -69,7 +69,7 @@ impl VecLineGen {
         self.add(VecOps::VecOpEnd);
     }
 
-    pub fn gen(&mut self) -> PlotPoints {
+    pub fn gen(&mut self) -> Vec<[f64; 2]> {
         let mut points = Vec::new();
         for op in &self.ops {
             match op {
@@ -105,6 +105,6 @@ impl VecLineGen {
             }
         }
 
-        points.into_iter().collect()
+        points
     }
 }

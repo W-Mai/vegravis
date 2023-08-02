@@ -26,14 +26,24 @@ fn main() -> Result<(), eframe::Error> {
     )
 }
 
+struct MainAppCache {
+    code: String,
+    lines: Vec<[f64; 2]>,
+}
+
 struct MainApp {
     code: String,
+    cache: MainAppCache,
 }
 
 impl Default for MainApp {
     fn default() -> Self {
         Self {
             code: DEFAULT_CODE.to_owned(),
+            cache: MainAppCache {
+                code: "".to_owned(),
+                lines: vec![],
+            },
         }
     }
 }
@@ -58,9 +68,15 @@ impl eframe::App for MainApp {
                                 strip.cell(|ui| {
                                     let plot = Plot::new("plot").data_aspect(1.0);
                                     plot.show(ui, |plot_ui| {
-                                        let mut parser = code_parser::CodeParser::new(self.code.clone());
-                                        let mut vlg = VecLineGen::new(parser.parse());
-                                        plot_ui.line(Line::new(vlg.gen()).color(egui::Color32::GREEN));
+                                        if self.code != self.cache.code {
+                                            let mut parser = code_parser::CodeParser::new(self.code.clone());
+                                            let mut vlg = VecLineGen::new(parser.parse());
+                                            self.cache.lines = vlg.gen();
+                                            self.cache.code = self.code.clone();
+                                        }
+                                        let lines = self.cache.lines.clone();
+                                        let points: PlotPoints = lines.into_iter().collect();
+                                        plot_ui.line(Line::new(points).color(egui::Color32::from_rgb(0, 255, 0)));
                                     });
                                 });
                                 strip.cell(|ui| {
