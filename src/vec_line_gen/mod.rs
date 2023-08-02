@@ -82,8 +82,27 @@ impl VecLineGen {
                     points.push([*x, *y]);
                     self.cursor = PlotPoint::from([*x, *y]);
                 }
+                VecOps::VecOpQuad(x1, y1, x2, y2) => {
+                    let mut t = 0.0;
+                    while t < 1.0 {
+                        let x = (1.0f64 - t).powi(2) * self.cursor.x + 2.0 * (1.0 - t) * t * x1 + t.powi(2) * x2;
+                        let y = (1.0f64 - t).powi(2) * self.cursor.y + 2.0 * (1.0 - t) * t * y1 + t.powi(2) * y2;
+                        points.push([x, y]);
+                        t += 0.01;
+                    }
+                    self.cursor = PlotPoint::from([*x2, *y2]);
+                }
+                VecOps::VecOpCubi(x1, y1, x2, y2, x3, y3) => {
+                    let mut t = 0.0;
+                    while t < 1.0 {
+                        let x = (1.0f64 - t).powi(3) * self.cursor.x + 3.0 * (1.0 - t).powi(2) * t * x1 + 3.0 * (1.0 - t) * t.powi(2) * x2 + t.powi(3) * x3;
+                        let y = (1.0f64 - t).powi(3) * self.cursor.y + 3.0 * (1.0 - t).powi(2) * t * y1 + 3.0 * (1.0 - t) * t.powi(2) * y2 + t.powi(3) * y3;
+                        points.push([x, y]);
+                        t += 0.01;
+                    }
+                    self.cursor = PlotPoint::from([*x3, *y3]);
+                }
                 VecOps::VecOpEnd => {}
-                _ => {}
             }
         }
 

@@ -62,8 +62,8 @@ impl eframe::App for MainApp {
                                         let mut vlg = VecLineGen::new(vec![]);
                                         vlg.add_move(10.0, 10.0);
                                         vlg.add_line(10.0, 300.0);
-                                        vlg.add_move(20.0, 40.0);
-                                        vlg.add_line(300.0, 300.0);
+                                        vlg.add_quad(150.0, 0.0, 300.0, 300.0);
+                                        vlg.add_cubi(100.0, 100.0, 200.0, 200.0, 150.0, 30.0);
                                         vlg.add_line(300.0, 10.0);
                                         vlg.add_line(10.0, 10.0);
                                         plot_ui.line(Line::new(vlg.gen()).color(egui::Color32::GREEN));
