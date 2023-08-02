@@ -14,5 +14,5 @@ eframe = { version = "0.22.0", default-features = false, features = [
 egui_extras = "0.22.0"
 egui_code_editor = "0.1.2"
 
+log = "0.4.19"
 env_logger = "0.10.0"
-

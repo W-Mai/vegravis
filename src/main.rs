@@ -4,6 +4,7 @@ mod syntax;
 mod vec_line_gen;
 mod code_parser;
 
+use log::{debug, error, log_enabled, info, Level};
 use eframe::{egui};
 use eframe::egui::plot::{Line, Plot, PlotPoints};
 use egui_code_editor::{CodeEditor, ColorTheme};
@@ -70,9 +71,18 @@ impl eframe::App for MainApp {
                                     plot.show(ui, |plot_ui| {
                                         if self.code != self.cache.code {
                                             let mut parser = code_parser::CodeParser::new(self.code.clone());
-                                            let mut vlg = VecLineGen::new(parser.parse());
-                                            self.cache.lines = vlg.gen();
-                                            self.cache.code = self.code.clone();
+
+                                            match parser.parse() {
+                                                Ok(parsed) => {
+                                                    let mut vlg = VecLineGen::new(parsed);
+                                                    self.cache.lines = vlg.gen();
+                                                    self.cache.code = self.code.clone();
+                                                }
+                                                Err(e) => {
+                                                    error!("Error: {:?}", e);
+                                                    return;
+                                                }
+                                            }
                                         }
                                         let lines = self.cache.lines.clone();
                                         let points: PlotPoints = lines.into_iter().collect();
