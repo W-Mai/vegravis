@@ -79,7 +79,6 @@ impl eframe::App for MainApp {
 
                                             match parser.parse() {
                                                 Ok(parsed) => {
-                                                    self.error = None;
                                                     let mut vlg = VecLineGen::new(parsed);
                                                     self.cache.lines = vlg.gen();
                                                     self.cache.code = self.code.clone();
@@ -91,6 +90,7 @@ impl eframe::App for MainApp {
                                                 }
                                             }
                                         }
+                                        self.error = None;
                                         let lines = self.cache.lines.clone();
                                         let points: PlotPoints = lines.into_iter().collect();
                                         plot_ui.line(Line::new(points).color(egui::Color32::from_rgb(0, 255, 0)));
@@ -112,7 +112,7 @@ impl eframe::App for MainApp {
                         ui.vertical_centered(|ui| {
                             ui.horizontal(|ui| {
                                 let info = self.error.as_ref().map_or_else(|| "".to_owned(), |e| {
-                                    format!("Error: {:?}", e)
+                                    format!("({}, {}): Error: {}", e.cursor.row + 1, e.cursor.col, e.msg)
                                 });
 
                                 ui.label(info);

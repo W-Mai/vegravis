@@ -32,6 +32,13 @@ impl CodeParser {
         }
     }
 
+    fn cursor_back(&mut self, ident: String) {
+        if self.cursor.col != 0 {
+            self.cursor.pos -= ident.len();
+            self.cursor.col -= ident.len();
+        }
+    }
+
     fn curr_pos(&self) -> usize {
         self.cursor.pos
     }
@@ -67,7 +74,10 @@ impl CodeParser {
         }
         match number.parse() {
             Ok(n) => Ok(n),
-            Err(_) => Err(ParseError { msg: "Invalid number".to_owned(), cursor: self.cursor.clone() }),
+            Err(_) => {
+                self.cursor_back(number.clone());
+                Err(ParseError { msg: format!("Invalid number '{}'", number), cursor: self.cursor.clone() })
+            }
         }
     }
 
@@ -90,6 +100,7 @@ impl CodeParser {
                 self.cursor_next(c);
                 break;
             } else {
+                self.cursor_back(c.to_string());
                 return Err(ParseError { msg: "Expected comma".to_owned(), cursor: self.cursor.clone() });
             }
         }
@@ -107,19 +118,23 @@ impl CodeParser {
     }
 
     fn parse_op(&mut self) -> Result<VecOps, ParseError> {
-        let op_type = self.read_ident().parse();
-        self.eat_comma()?;
+        let ident = self.read_ident();
+        let op_type = ident.parse();
         match op_type {
             Ok(VecOpsType::VecOpMove) => self.parse_move(),
             Ok(VecOpsType::VecOpLine) => self.parse_line(),
             Ok(VecOpsType::VecOpQuad) => self.parse_quad(),
             Ok(VecOpsType::VecOpCubi) => self.parse_cubi(),
             Ok(VecOpsType::VecOpEnd) => self.parse_end(),
-            _ => Err(ParseError { msg: "Invalid op type".to_owned(), cursor: self.cursor.clone() }),
+            _ => {
+                self.cursor_back(ident.clone());
+                Err(ParseError { msg: format!("Invalid op type '{}'", ident), cursor: self.cursor.clone() })
+            }
         }
     }
 
     fn parse_move(&mut self) -> Result<VecOps, ParseError> {
+        self.eat_comma()?;
         let x = self.read_number()?;
         self.eat_comma()?;
         let y = self.read_number()?;
@@ -128,6 +143,7 @@ impl CodeParser {
     }
 
     fn parse_line(&mut self) -> Result<VecOps, ParseError> {
+        self.eat_comma()?;
         let x = self.read_number()?;
         self.eat_comma()?;
         let y = self.read_number()?;
@@ -136,6 +152,7 @@ impl CodeParser {
     }
 
     fn parse_quad(&mut self) -> Result<VecOps, ParseError> {
+        self.eat_comma()?;
         let x1 = self.read_number()?;
         self.eat_comma()?;
         let y1 = self.read_number()?;
@@ -148,6 +165,7 @@ impl CodeParser {
     }
 
     fn parse_cubi(&mut self) -> Result<VecOps, ParseError> {
+        self.eat_comma()?;
         let x1 = self.read_number()?;
         self.eat_comma()?;
         let y1 = self.read_number()?;
@@ -164,6 +182,8 @@ impl CodeParser {
     }
 
     fn parse_end(&mut self) -> Result<VecOps, ParseError> {
+        self.read_ident();
+        self.eat_comma()?;
         Ok(VecOps::VecOpEnd)
     }
 }
