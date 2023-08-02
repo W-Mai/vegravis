@@ -98,7 +98,7 @@ impl eframe::App for MainApp {
                                 });
                                 strip.cell(|ui| {
                                     CodeEditor::default()
-                                        .id_source("code editor2")
+                                        .id_source("code editor")
                                         .with_rows(12)
                                         .with_fontsize(14.0)
                                         .with_theme(ColorTheme::SONOKAI)
