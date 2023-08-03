@@ -67,12 +67,16 @@ impl VecLineGen {
         self.add(VecOps::VecOpEnd);
     }
 
-    pub fn gen(&mut self) -> Vec<[f64; 2]> {
+    pub fn gen(&mut self) -> Vec<Vec<[f64; 2]>> {
+        let mut points_total = Vec::new();
         let mut points = Vec::new();
         for op in &self.ops {
             match op {
                 VecOps::VecOpMove(x, y) => {
                     self.cursor = PlotPoint::from([*x, *y]);
+                    points_total.push(points);
+                    points = Vec::new();
+                    points.push([*x, *y]);
                 }
                 VecOps::VecOpLine(x, y) => {
                     points.push([self.cursor.x, self.cursor.y]);
@@ -102,7 +106,10 @@ impl VecLineGen {
                 VecOps::VecOpEnd => {}
             }
         }
+        if !points.is_empty() {
+            points_total.push(points);
+        }
 
-        points
+        points_total
     }
 }

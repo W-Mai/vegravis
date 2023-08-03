@@ -31,7 +31,7 @@ fn main() -> Result<(), eframe::Error> {
 
 struct MainAppCache {
     code: String,
-    lines: Vec<[f64; 2]>,
+    lines: Vec<Vec<[f64; 2]>>,
 
     params: MainAppParams,
 }
@@ -116,16 +116,18 @@ impl eframe::App for MainApp {
                                                     error!("Error: {:?}", e);
                                                     self.error = Some(e);
                                                     let lines = self.cache.lines.clone();
-                                                    let points: PlotPoints = lines.into_iter().collect();
-                                                    plot_ui.line(Line::new(points).color(egui::Color32::DARK_RED).width(5.0));
+                                                    for points in lines.into_iter() {
+                                                        plot_ui.line(Line::new(points).color(egui::Color32::DARK_RED).width(5.0));
+                                                    }
                                                     return;
                                                 }
                                             }
                                         }
                                         self.error = None;
                                         let lines = self.cache.lines.clone();
-                                        let points: PlotPoints = lines.into_iter().collect();
-                                        plot_ui.line(Line::new(points).color(egui::Color32::DARK_BLUE));
+                                        for points in lines.into_iter() {
+                                            plot_ui.line(Line::new(points).color(egui::Color32::DARK_BLUE).width(5.0));
+                                        }
                                     });
                                 });
                                 strip.strip(|builder| {
