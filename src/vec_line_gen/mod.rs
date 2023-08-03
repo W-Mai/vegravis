@@ -74,6 +74,9 @@ impl VecLineGen {
             match op {
                 VecOps::VecOpMove(x, y) => {
                     self.cursor = PlotPoint::from([*x, *y]);
+                    if points_total.len() == 0 {
+                        points.push([0.0, 0.0]);
+                    }
                     points_total.push(points);
                     points = Vec::new();
                     points.push([*x, *y]);

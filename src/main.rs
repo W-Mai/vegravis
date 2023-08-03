@@ -9,7 +9,8 @@ use std::ops::RangeInclusive;
 use std::vec;
 use log::error;
 use eframe::{egui};
-use eframe::egui::plot::{Line, Plot};
+use eframe::egui::plot::{Line, LineStyle, Plot};
+use eframe::egui::Stroke;
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
 use crate::code_parser::ParseError;
@@ -45,6 +46,7 @@ struct MainAppParams {
     vis_progress_max: i64,
 
     lcd_coords: bool,
+    show_inter_dash: bool,
 }
 
 struct MainApp {
@@ -122,11 +124,23 @@ impl eframe::App for MainApp {
                                                     error!("Error: {:?}", e);
                                                     self.error = Some(e);
                                                     let lines = self.cache.lines.clone();
+                                                    if lines.len() == 0 {
+                                                        return;
+                                                    }
+                                                    let mut last_line_end = lines.first().unwrap().last().unwrap().clone();
                                                     for points in lines.into_iter() {
                                                         let mut points = points;
                                                         if self.params.lcd_coords {
                                                             points = points.into_iter().map(|[x, y]| [x, -y]).collect::<Vec<[f64; 2]>>();
                                                         }
+                                                        let curr_line_start = points.first().unwrap().clone();
+                                                        if last_line_end != curr_line_start && self.params.show_inter_dash {
+                                                            plot_ui.line(Line::new(vec![last_line_end, curr_line_start])
+                                                                .stroke(Stroke::new(1.0, egui::Color32::LIGHT_RED))
+                                                                .style(LineStyle::dashed_dense())
+                                                            );
+                                                        }
+                                                        last_line_end = points.last().unwrap().clone();
                                                         plot_ui.line(Line::new(points).color(egui::Color32::DARK_RED).width(5.0));
                                                     }
                                                     return;
@@ -135,12 +149,24 @@ impl eframe::App for MainApp {
                                         }
                                         self.error = None;
                                         let lines = self.cache.lines.clone();
+                                        if lines.len() == 0 {
+                                            return;
+                                        }
+                                        let mut last_line_end = lines.first().unwrap().last().unwrap().clone();
                                         for points in lines.into_iter() {
                                             let mut points = points;
                                             if self.params.lcd_coords {
                                                 points = points.into_iter().map(|[x, y]| [x, -y]).collect::<Vec<[f64; 2]>>();
                                             }
-                                            plot_ui.line(Line::new(points).color(egui::Color32::DARK_RED).width(5.0));
+                                            let curr_line_start = points.first().unwrap().clone();
+                                            if last_line_end != curr_line_start && self.params.show_inter_dash {
+                                                plot_ui.line(Line::new(vec![last_line_end, curr_line_start])
+                                                    .stroke(Stroke::new(1.0, egui::Color32::LIGHT_GREEN))
+                                                    .style(LineStyle::dashed_dense())
+                                                );
+                                            }
+                                            last_line_end = points.last().unwrap().clone();
+                                            plot_ui.line(Line::new(points).color(egui::Color32::DARK_BLUE).width(2.0));
                                         }
                                     });
                                 });
@@ -171,6 +197,8 @@ impl eframe::App for MainApp {
                                                 ui.horizontal(|ui| {
                                                     ui.label("LCD Coordinates");
                                                     ui.add(toggle(&mut self.params.lcd_coords));
+                                                    ui.label("Show Intermediate Dash");
+                                                    ui.add(toggle(&mut self.params.show_inter_dash));
                                                     ui.add_sized(ui.available_size(),
                                                                  egui::Slider::new(&mut self.params.vis_progress, 0..=self.params.vis_progress_max)
                                                                      .text("Progress")
