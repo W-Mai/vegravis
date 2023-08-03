@@ -1,4 +1,3 @@
-use eframe::egui::Key::N;
 use crate::vec_line_gen::{VecOps, VecOpsType};
 
 #[derive(Debug, Clone)]
