@@ -3,14 +3,17 @@
 mod syntax;
 mod vec_line_gen;
 mod code_parser;
+mod cus_component;
 
+use std::ops::RangeInclusive;
 use std::vec;
 use log::error;
 use eframe::{egui};
-use eframe::egui::plot::{Line, Plot, PlotPoints};
+use eframe::egui::plot::{Line, Plot};
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
 use crate::code_parser::ParseError;
+use crate::cus_component::toggle;
 use crate::syntax::vec_op_syntax;
 use crate::vec_line_gen::VecLineGen;
 
@@ -36,10 +39,12 @@ struct MainAppCache {
     params: MainAppParams,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 struct MainAppParams {
     vis_progress: i64,
     vis_progress_max: i64,
+
+    lcd_coords: bool,
 }
 
 struct MainApp {
@@ -55,17 +60,11 @@ impl Default for MainApp {
     fn default() -> Self {
         Self {
             code: DEFAULT_CODE.to_owned(),
-            params: MainAppParams {
-                vis_progress: 0,
-                vis_progress_max: 0,
-            },
+            params: MainAppParams::default(),
             cache: MainAppCache {
                 code: "".to_owned(),
                 lines: vec![],
-                params: MainAppParams {
-                    vis_progress: 0,
-                    vis_progress_max: 0,
-                },
+                params: MainAppParams::default(),
             },
             error: None,
         }
@@ -91,7 +90,14 @@ impl eframe::App for MainApp {
                             .size(Size::relative(0.5))
                             .horizontal(|mut strip| {
                                 strip.cell(|ui| {
-                                    let plot = Plot::new("plot").data_aspect(1.0);
+                                    let plot = Plot::new("plot").data_aspect(1.0)
+                                        .y_axis_formatter(
+                                            if self.params.lcd_coords {
+                                                |y: f64, _range: &RangeInclusive<f64>| format!("{:.2}", -y)
+                                            } else {
+                                                |y: f64, _range: &RangeInclusive<f64>| format!("{:.2}", y)
+                                            }
+                                        );
                                     plot.show(ui, |plot_ui| {
                                         if self.code != self.cache.code || self.params != self.cache.params {
                                             let mut parser = code_parser::CodeParser::new(self.code.clone());
@@ -117,6 +123,10 @@ impl eframe::App for MainApp {
                                                     self.error = Some(e);
                                                     let lines = self.cache.lines.clone();
                                                     for points in lines.into_iter() {
+                                                        let mut points = points;
+                                                        if self.params.lcd_coords {
+                                                            points = points.into_iter().map(|[x, y]| [x, -y]).collect::<Vec<[f64; 2]>>();
+                                                        }
                                                         plot_ui.line(Line::new(points).color(egui::Color32::DARK_RED).width(5.0));
                                                     }
                                                     return;
@@ -126,7 +136,11 @@ impl eframe::App for MainApp {
                                         self.error = None;
                                         let lines = self.cache.lines.clone();
                                         for points in lines.into_iter() {
-                                            plot_ui.line(Line::new(points).color(egui::Color32::DARK_BLUE).width(5.0));
+                                            let mut points = points;
+                                            if self.params.lcd_coords {
+                                                points = points.into_iter().map(|[x, y]| [x, -y]).collect::<Vec<[f64; 2]>>();
+                                            }
+                                            plot_ui.line(Line::new(points).color(egui::Color32::DARK_RED).width(5.0));
                                         }
                                     });
                                 });
@@ -153,11 +167,16 @@ impl eframe::App for MainApp {
                                             });
 
                                             strip.cell(|ui| {
-                                                ui.add_sized(ui.available_size(),
-                                                             egui::Slider::new(&mut self.params.vis_progress, 0..=self.params.vis_progress_max)
-                                                                 .text("Progress")
-                                                                 .show_value(true),
-                                                );
+                                                ui.separator();
+                                                ui.horizontal(|ui| {
+                                                    ui.label("LCD Coordinates");
+                                                    ui.add(toggle(&mut self.params.lcd_coords));
+                                                    ui.add_sized(ui.available_size(),
+                                                                 egui::Slider::new(&mut self.params.vis_progress, 0..=self.params.vis_progress_max)
+                                                                     .text("Progress")
+                                                                     .show_value(true),
+                                                    );
+                                                });
                                             });
                                         });
                                 })
