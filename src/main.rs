@@ -165,10 +165,24 @@ impl eframe::App for MainApp {
                                 });
                                 strip.strip(|builder| {
                                     builder
+                                        .size(Size::exact(100.0))
                                         .size(Size::exact(30.0))
                                         .size(Size::remainder())
-                                        .size(Size::exact(30.0))
                                         .vertical(|mut strip| {
+                                            strip.cell(|ui| {
+                                                egui::ScrollArea::vertical().show(ui, |ui| {
+                                                    ui.heading("Controls");
+                                                    ui.horizontal_wrapped(|ui| {
+                                                        ui.add(toggle("LCD Coordinates", &mut self.params.lcd_coords));
+                                                        ui.add(toggle("Show Intermediate Dash", &mut self.params.show_inter_dash));
+                                                        ui.add_sized(ui.available_size(),
+                                                                     egui::Slider::new(&mut self.params.vis_progress, 0..=self.params.vis_progress_max)
+                                                                         .text("Progress")
+                                                                         .show_value(true),
+                                                        );
+                                                    });
+                                                });
+                                            });
                                             strip.cell(|ui| {
                                                 ui.vertical_centered(|ui| {
                                                     ui.heading("Code");
@@ -183,21 +197,6 @@ impl eframe::App for MainApp {
                                                     .with_syntax(vec_op_syntax())
                                                     .with_numlines(true)
                                                     .show(ui, &mut self.code);
-                                            });
-
-                                            strip.cell(|ui| {
-                                                ui.separator();
-                                                ui.horizontal(|ui| {
-                                                    ui.label("LCD Coordinates");
-                                                    ui.add(toggle(&mut self.params.lcd_coords));
-                                                    ui.label("Show Intermediate Dash");
-                                                    ui.add(toggle(&mut self.params.show_inter_dash));
-                                                    ui.add_sized(ui.available_size(),
-                                                                 egui::Slider::new(&mut self.params.vis_progress, 0..=self.params.vis_progress_max)
-                                                                     .text("Progress")
-                                                                     .show_value(true),
-                                                    );
-                                                });
                                             });
                                         });
                                 })
