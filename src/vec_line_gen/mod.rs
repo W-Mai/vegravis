@@ -9,6 +9,7 @@ pub enum VecOpsType {
     VecOpEnd,
 }
 
+#[derive(Clone)]
 pub enum VecOps {
     VecOpMove(f64, f64),
     VecOpLine(f64, f64),

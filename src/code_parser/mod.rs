@@ -110,6 +110,7 @@ impl CodeParser {
 
     pub fn parse(&mut self) -> Result<Vec<VecOps>, ParseError> {
         let mut ops = Vec::new();
+        self.eat_whitespace();
         while self.curr_pos() < self.code.len() {
             let op = self.parse_op()?;
             ops.push(op);
