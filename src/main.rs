@@ -100,11 +100,12 @@ impl eframe::App for MainApp {
                                                 |y: f64, _range: &RangeInclusive<f64>| format!("{:.2}", y)
                                             }
                                         );
+                                    let mut has_error = false;
                                     plot.show(ui, |plot_ui| {
                                         if self.code != self.cache.code || self.params != self.cache.params {
                                             let mut parser = code_parser::CodeParser::new(self.code.clone());
 
-                                            match parser.parse() {
+                                            has_error = match parser.parse() {
                                                 Ok(parsed) => {
                                                     let ops_count = parsed.len() as i64;
                                                     self.params.vis_progress_max = ops_count;
@@ -119,35 +120,19 @@ impl eframe::App for MainApp {
                                                     self.cache.lines = vlg.gen();
                                                     self.cache.code = self.code.clone();
                                                     self.cache.params = self.params.clone();
+                                                    false
                                                 }
                                                 Err(e) => {
                                                     error!("Error: {:?}", e);
                                                     self.error = Some(e);
-                                                    let lines = self.cache.lines.clone();
-                                                    if lines.len() == 0 {
-                                                        return;
-                                                    }
-                                                    let mut last_line_end = lines.first().unwrap().last().unwrap().clone();
-                                                    for points in lines.into_iter() {
-                                                        let mut points = points;
-                                                        if self.params.lcd_coords {
-                                                            points = points.into_iter().map(|[x, y]| [x, -y]).collect::<Vec<[f64; 2]>>();
-                                                        }
-                                                        let curr_line_start = points.first().unwrap().clone();
-                                                        if last_line_end != curr_line_start && self.params.show_inter_dash {
-                                                            plot_ui.line(Line::new(vec![last_line_end, curr_line_start])
-                                                                .stroke(Stroke::new(1.0, egui::Color32::LIGHT_RED))
-                                                                .style(LineStyle::dashed_dense())
-                                                            );
-                                                        }
-                                                        last_line_end = points.last().unwrap().clone();
-                                                        plot_ui.line(Line::new(points).color(egui::Color32::DARK_RED).width(5.0));
-                                                    }
-                                                    return;
+                                                    true
                                                 }
                                             }
                                         }
-                                        self.error = None;
+
+                                        if !has_error {
+                                            self.error = None;
+                                        }
                                         let lines = self.cache.lines.clone();
                                         if lines.len() == 0 {
                                             return;
@@ -160,13 +145,21 @@ impl eframe::App for MainApp {
                                             }
                                             let curr_line_start = points.first().unwrap().clone();
                                             if last_line_end != curr_line_start && self.params.show_inter_dash {
-                                                plot_ui.line(Line::new(vec![last_line_end, curr_line_start])
-                                                    .stroke(Stroke::new(1.0, egui::Color32::LIGHT_GREEN))
-                                                    .style(LineStyle::dashed_dense())
-                                                );
+                                                let drawn_lines = Line::new(vec![last_line_end, curr_line_start])
+                                                    .style(LineStyle::dashed_dense());
+                                                plot_ui.line(if has_error {
+                                                    drawn_lines.stroke(Stroke::new(2.0, egui::Color32::LIGHT_RED))
+                                                } else {
+                                                    drawn_lines.stroke(Stroke::new(1.0, egui::Color32::LIGHT_GREEN))
+                                                });
                                             }
                                             last_line_end = points.last().unwrap().clone();
-                                            plot_ui.line(Line::new(points).color(egui::Color32::DARK_BLUE).width(2.0));
+                                            let drawn_lines = Line::new(points);
+                                            plot_ui.line(if has_error {
+                                                drawn_lines.color(egui::Color32::DARK_RED).width(5.0)
+                                            } else {
+                                                drawn_lines.color(egui::Color32::LIGHT_BLUE).width(2.0)
+                                            });
                                         }
                                     });
                                 });
