@@ -7,6 +7,8 @@ mod code_parser;
 use log::error;
 use eframe::{egui};
 use eframe::egui::plot::{Line, Plot, PlotPoints};
+use eframe::egui::WidgetText;
+use eframe::egui::WidgetText::RichText;
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
 use crate::code_parser::ParseError;
@@ -86,6 +88,9 @@ impl eframe::App for MainApp {
                                                 Err(e) => {
                                                     error!("Error: {:?}", e);
                                                     self.error = Some(e);
+                                                    let lines = self.cache.lines.clone();
+                                                    let points: PlotPoints = lines.into_iter().collect();
+                                                    plot_ui.line(Line::new(points).color(egui::Color32::DARK_RED).width(5.0));
                                                     return;
                                                 }
                                             }
@@ -93,7 +98,7 @@ impl eframe::App for MainApp {
                                         self.error = None;
                                         let lines = self.cache.lines.clone();
                                         let points: PlotPoints = lines.into_iter().collect();
-                                        plot_ui.line(Line::new(points).color(egui::Color32::from_rgb(0, 255, 0)));
+                                        plot_ui.line(Line::new(points).color(egui::Color32::DARK_BLUE));
                                     });
                                 });
                                 strip.cell(|ui| {
@@ -114,8 +119,8 @@ impl eframe::App for MainApp {
                                 let info = self.error.as_ref().map_or_else(|| "".to_owned(), |e| {
                                     format!("({}, {}): Error: {}", e.cursor.row + 1, e.cursor.col, e.msg)
                                 });
-
-                                ui.label(info);
+                                let rt = egui::RichText::new(info).size(20.0).color(egui::Color32::RED).text_style(egui::TextStyle::Monospace);
+                                ui.label(rt).highlight();
                             });
                         });
                     });
