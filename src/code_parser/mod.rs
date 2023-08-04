@@ -128,11 +128,11 @@ impl CodeParser {
         }
     }
 
-    fn read_n_params(&mut self, n: usize) -> Result<Vec<Token>, ParseError> {
+    fn read_n_params(&mut self, n: usize) -> Result<Vec<f64>, ParseError> {
         let mut params = Vec::new();
         for _ in 0..n {
             self.eat_comment();
-            let number = self.read_number()?;
+            let number = self.read_number()?.value.into_number()?;
             params.push(number);
             self.eat_comma()?;
         }
@@ -260,51 +260,26 @@ impl CodeParser {
     }
 
     fn parse_move(&mut self) -> Result<VecOps, ParseError> {
-        let x = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let y = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        Ok(VecOps::VecOpMove(x, y))
+        let params = self.read_n_params(2)?;
+        Ok(VecOps::VecOpMove(params[0], params[1]))
     }
 
     fn parse_line(&mut self) -> Result<VecOps, ParseError> {
-        let x = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let y = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        Ok(VecOps::VecOpLine(x, y))
+        let params = self.read_n_params(2)?;
+        Ok(VecOps::VecOpLine(params[0], params[1]))
     }
 
     fn parse_quad(&mut self) -> Result<VecOps, ParseError> {
-        let x1 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let y1 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let x2 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let y2 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        Ok(VecOps::VecOpQuad(x1, y1, x2, y2))
+        let params = self.read_n_params(4)?;
+        Ok(VecOps::VecOpQuad(params[0], params[1], params[2], params[3]))
     }
 
     fn parse_cubi(&mut self) -> Result<VecOps, ParseError> {
-        let x1 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let y1 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let x2 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let y2 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let x3 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        let y3 = self.read_number()?.value.into_number()?;
-        self.eat_comma()?;
-        Ok(VecOps::VecOpCubi(x1, y1, x2, y2, x3, y3))
+        let params = self.read_n_params(6)?;
+        Ok(VecOps::VecOpCubi(params[0], params[1], params[2], params[3], params[4], params[5]))
     }
 
     fn parse_end(&mut self) -> Result<VecOps, ParseError> {
-        self.eat_comma()?;
         Ok(VecOps::VecOpEnd)
     }
 }
