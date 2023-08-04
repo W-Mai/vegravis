@@ -99,6 +99,10 @@ impl CodeParser {
         self.cursor.pos
     }
 
+    fn curr_ch(&self) -> char {
+        self.code.chars().nth(self.curr_pos()).unwrap()
+    }
+
     fn not_eof(&self) -> bool {
         self.curr_pos() < self.code.len()
     }
@@ -107,7 +111,7 @@ impl CodeParser {
         let cur = self.curr_cur();
         let mut ident = String::new();
         while self.not_eof() {
-            let c = self.code.chars().nth(self.curr_pos()).unwrap();
+            let c = self.curr_ch();
             if c.is_alphanumeric() || c == '_' {
                 ident.push(c);
                 self.cursor_next(c);
@@ -122,7 +126,7 @@ impl CodeParser {
         let cur = self.curr_cur();
         let mut number = String::new();
         while self.not_eof() {
-            let c = self.code.chars().nth(self.curr_pos()).unwrap();
+            let c = self.curr_ch();
             if c == '-' || c.is_numeric() || c == '.' {
                 number.push(c);
                 self.cursor_next(c);
@@ -151,7 +155,7 @@ impl CodeParser {
 
     fn eat_whitespace(&mut self) {
         while self.not_eof() {
-            let c = self.code.chars().nth(self.curr_pos()).unwrap();
+            let c = self.curr_ch();
             if c.is_whitespace() {
                 self.cursor_next(c);
             } else {
@@ -164,7 +168,7 @@ impl CodeParser {
         let cur = self.curr_cur();
         self.eat_comment();
         while self.not_eof() {
-            let c = self.code.chars().nth(self.curr_pos()).unwrap();
+            let c = self.curr_ch();
             if c == ',' {
                 self.cursor_next(c);
                 break;
@@ -183,7 +187,7 @@ impl CodeParser {
                 self.cursor_next('/');
                 self.cursor_next('/');
                 while self.not_eof() {
-                    let c = self.code.chars().nth(self.curr_pos()).unwrap();
+                    let c = self.curr_ch();
                     if c != '\n' {
                         self.cursor_next(c);
                     } else {
@@ -202,7 +206,7 @@ impl CodeParser {
                         self.cursor_next('/');
                         break;
                     } else {
-                        self.cursor_next(self.code.chars().nth(self.curr_pos()).unwrap());
+                        self.cursor_next(self.curr_ch());
                     }
                 }
             }
