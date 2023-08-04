@@ -1,4 +1,3 @@
-use std::process::id;
 use crate::vec_line_gen::{VecOps, VecOpsType};
 
 #[derive(Debug, Clone)]
@@ -42,14 +41,14 @@ impl Default for ParseError {
 }
 
 impl TokenValue {
-    fn as_string(self) -> Result<String, ParseError> {
+    fn into_string(self) -> Result<String, ParseError> {
         match self {
             TokenValue::Ident(s) => Ok(s),
             _ => Err(ParseError::default()),
         }
     }
 
-    fn as_number(self) -> Result<f64, ParseError> {
+    fn into_number(self) -> Result<f64, ParseError> {
         match self {
             TokenValue::Number(f) => Ok(f),
             _ => Err(ParseError::default()),
@@ -246,7 +245,7 @@ impl CodeParser {
     fn parse_op(&mut self) -> Result<VecOps, ParseError> {
         let ident = self.read_ident()?;
         let ident_cur = ident.cursor.clone();
-        let ident_string = ident.value.as_string()?;
+        let ident_string = ident.value.into_string()?;
         self.eat_comma()?;
         match ident_string.parse() {
             Ok(VecOpsType::VecOpMove) => self.parse_move(),
@@ -261,45 +260,45 @@ impl CodeParser {
     }
 
     fn parse_move(&mut self) -> Result<VecOps, ParseError> {
-        let x = self.read_number()?.value.as_number()?;
+        let x = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let y = self.read_number()?.value.as_number()?;
+        let y = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
         Ok(VecOps::VecOpMove(x, y))
     }
 
     fn parse_line(&mut self) -> Result<VecOps, ParseError> {
-        let x = self.read_number()?.value.as_number()?;
+        let x = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let y = self.read_number()?.value.as_number()?;
+        let y = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
         Ok(VecOps::VecOpLine(x, y))
     }
 
     fn parse_quad(&mut self) -> Result<VecOps, ParseError> {
-        let x1 = self.read_number()?.value.as_number()?;
+        let x1 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let y1 = self.read_number()?.value.as_number()?;
+        let y1 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let x2 = self.read_number()?.value.as_number()?;
+        let x2 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let y2 = self.read_number()?.value.as_number()?;
+        let y2 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
         Ok(VecOps::VecOpQuad(x1, y1, x2, y2))
     }
 
     fn parse_cubi(&mut self) -> Result<VecOps, ParseError> {
-        let x1 = self.read_number()?.value.as_number()?;
+        let x1 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let y1 = self.read_number()?.value.as_number()?;
+        let y1 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let x2 = self.read_number()?.value.as_number()?;
+        let x2 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let y2 = self.read_number()?.value.as_number()?;
+        let y2 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let x3 = self.read_number()?.value.as_number()?;
+        let x3 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
-        let y3 = self.read_number()?.value.as_number()?;
+        let y3 = self.read_number()?.value.into_number()?;
         self.eat_comma()?;
         Ok(VecOps::VecOpCubi(x1, y1, x2, y2, x3, y3))
     }
