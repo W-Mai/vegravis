@@ -5,7 +5,7 @@ mod vec_line_gen;
 mod code_parser;
 mod cus_component;
 
-use std::ops::RangeInclusive;
+use std::ops::{Add, RangeInclusive};
 use std::vec;
 use log::error;
 use eframe::{egui};
@@ -19,6 +19,22 @@ use crate::syntax::vec_op_syntax;
 use crate::vec_line_gen::VecLineGen;
 
 const DEFAULT_CODE: &str = include_str!("default_code");
+
+// beautiful colors
+// c08eaf, fba414, 8cc269, 4f9da6, 9b5c5a, 5a5c9b, 9b5a5c, 5c9b5a, 5c9b9b, 9b5c9b
+const COLOR_PALETTE: [egui::Color32; 10] = [
+    egui::Color32::from_rgb(0xc0, 0x8e, 0xaf),
+    egui::Color32::from_rgb(0xfb, 0xa4, 0x14),
+    egui::Color32::from_rgb(0x8c, 0xc2, 0x69),
+    egui::Color32::from_rgb(0x4f, 0x9d, 0xa6),
+    egui::Color32::from_rgb(0x9b, 0x5c, 0x5a),
+    egui::Color32::from_rgb(0x5a, 0x5c, 0x9b),
+    egui::Color32::from_rgb(0x9b, 0x5a, 0x5c),
+    egui::Color32::from_rgb(0x5c, 0x9b, 0x5a),
+    egui::Color32::from_rgb(0x5c, 0x9b, 0x9b),
+    egui::Color32::from_rgb(0x9b, 0x5c, 0x9b),
+];
+
 
 fn main() -> Result<(), eframe::Error> {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
@@ -47,6 +63,7 @@ struct MainAppParams {
 
     lcd_coords: bool,
     show_inter_dash: bool,
+    colorful_block: bool,
 }
 
 struct MainApp {
@@ -138,6 +155,7 @@ impl eframe::App for MainApp {
                                             return;
                                         }
                                         let mut last_line_end = lines.first().unwrap().last().unwrap().clone();
+                                        let mut color_index = 0;
                                         for points in lines.into_iter() {
                                             let mut points = points;
                                             if self.params.lcd_coords {
@@ -158,8 +176,12 @@ impl eframe::App for MainApp {
                                             plot_ui.line(if has_error {
                                                 drawn_lines.color(egui::Color32::DARK_RED).width(5.0)
                                             } else {
-                                                drawn_lines.color(egui::Color32::LIGHT_BLUE).width(2.0)
+                                                drawn_lines.color(COLOR_PALETTE[color_index]).width(2.0)
                                             });
+
+                                            if self.params.colorful_block {
+                                                color_index = (color_index + 1) % COLOR_PALETTE.len();
+                                            }
                                         }
                                     });
                                 });
@@ -175,6 +197,7 @@ impl eframe::App for MainApp {
                                                     ui.horizontal_wrapped(|ui| {
                                                         ui.add(toggle("LCD Coordinates", &mut self.params.lcd_coords));
                                                         ui.add(toggle("Show Intermediate Dash", &mut self.params.show_inter_dash));
+                                                        ui.add(toggle("Colorful Blocks", &mut self.params.colorful_block));
                                                         ui.add_sized(ui.available_size(),
                                                                      egui::Slider::new(&mut self.params.vis_progress, 0..=self.params.vis_progress_max)
                                                                          .text("Progress")
