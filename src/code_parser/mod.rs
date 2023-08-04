@@ -75,7 +75,7 @@ impl CodeParser {
     }
 
     pub fn parse(&mut self) -> Result<&VecLineGen, ParseError> {
-        self.eat_comment()?;
+        self.eat_comments()?;
         while self.curr_pos() < self.code.len() {
             self.parse_op()?;
         }
@@ -145,7 +145,7 @@ impl CodeParser {
     fn read_n_params(&mut self, n: usize) -> Result<Vec<f64>, ParseError> {
         let mut params = Vec::new();
         for _ in 0..n {
-            self.eat_comment()?;
+            self.eat_comments()?;
             let number = self.read_number()?.value.into_number()?;
             params.push(number);
             self.eat_comma()?;
@@ -166,7 +166,7 @@ impl CodeParser {
 
     fn eat_comma(&mut self) -> ReadResult {
         let cur = self.curr_cur();
-        self.eat_comment()?;
+        self.eat_comments()?;
         while self.not_eof() {
             let c = self.curr_ch();
             if c == ',' {
@@ -176,12 +176,25 @@ impl CodeParser {
                 return Err(ParseError { msg: "Expected comma".to_owned(), cursor: cur });
             }
         }
-        self.eat_comment()?;
+        self.eat_comments()?;
         Ok(Token { value: TokenValue::Comma, cursor: (cur, self.curr_cur()) })
     }
 
-    fn eat_comment(&mut self) -> ReadResult {
+    fn eat_comments(&mut self) -> ReadResult {
         self.eat_whitespace();
+        let mut comment = self.eat_comment();
+        loop {
+            self.eat_whitespace();
+            if self.check_comment().is_none() {
+                break;
+            } else {
+                comment = self.eat_comment();
+            }
+        }
+        comment
+    }
+
+    fn eat_comment(&mut self) -> ReadResult {
         let cur = self.curr_cur();
         match self.check_comment() {
             Some(CommentType::SingleLine) => {
