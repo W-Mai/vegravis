@@ -75,7 +75,7 @@ impl CodeParser {
     }
 
     pub fn parse(&mut self) -> Result<&VecLineGen, ParseError> {
-        self.eat_comment();
+        self.eat_comment()?;
         while self.curr_pos() < self.code.len() {
             self.parse_op()?;
         }
@@ -145,7 +145,7 @@ impl CodeParser {
     fn read_n_params(&mut self, n: usize) -> Result<Vec<f64>, ParseError> {
         let mut params = Vec::new();
         for _ in 0..n {
-            self.eat_comment();
+            self.eat_comment()?;
             let number = self.read_number()?.value.into_number()?;
             params.push(number);
             self.eat_comma()?;
@@ -166,7 +166,7 @@ impl CodeParser {
 
     fn eat_comma(&mut self) -> ReadResult {
         let cur = self.curr_cur();
-        self.eat_comment();
+        self.eat_comment()?;
         while self.not_eof() {
             let c = self.curr_ch();
             if c == ',' {
@@ -176,12 +176,13 @@ impl CodeParser {
                 return Err(ParseError { msg: "Expected comma".to_owned(), cursor: cur });
             }
         }
-        self.eat_comment();
+        self.eat_comment()?;
         Ok(Token { value: TokenValue::Comma, cursor: (cur, self.curr_cur()) })
     }
 
-    fn eat_comment(&mut self) {
+    fn eat_comment(&mut self) -> ReadResult {
         self.eat_whitespace();
+        let cur = self.curr_cur();
         match self.check_comment() {
             Some(CommentType::SingleLine) => {
                 self.cursor_next('/');
@@ -212,7 +213,11 @@ impl CodeParser {
             }
             _ => {}
         }
-        self.eat_whitespace();
+        if !self.not_eof() && cur.pos != self.curr_pos() {
+            return Err(ParseError { msg: "Invalid comment".to_owned(), cursor: cur });
+        }
+        let comment = self.code[cur.pos..self.curr_pos()].to_owned();
+        Ok(Token { value: TokenValue::Comment(comment), cursor: (cur, self.curr_cur()) })
     }
 
     fn check_comment(&mut self) -> Option<CommentType> {
@@ -220,7 +225,7 @@ impl CodeParser {
         let mut slash = false;
         let mut asterisk = false;
 
-        while self.not_eof() {
+        while tmp_pos < self.code.len() {
             let c = self.code.chars().nth(tmp_pos).unwrap();
             if c == '/' {
                 if slash {
@@ -247,6 +252,7 @@ impl CodeParser {
     }
 
     fn parse_op(&mut self) -> Result<(), ParseError> {
+        self.eat_whitespace();
         let ident = self.read_ident()?;
         let ident_cur = ident.cursor.clone();
         let ident_string = ident.value.into_string()?;
