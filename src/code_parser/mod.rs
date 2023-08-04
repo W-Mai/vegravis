@@ -82,13 +82,6 @@ impl CodeParser {
         }
     }
 
-    fn cursor_back(&mut self, ident: String) {
-        if self.cursor.col != 0 {
-            self.cursor.pos -= ident.len();
-            self.cursor.col -= ident.len();
-        }
-    }
-
     fn curr_cur(&self) -> Cursor {
         self.cursor.clone()
     }
@@ -131,8 +124,7 @@ impl CodeParser {
         match number.parse() {
             Ok(n) => Ok(Token { value: TokenValue::Number(n), cursor: (cur, self.curr_cur()) }),
             Err(_) => {
-                self.cursor_back(number.clone());
-                Err(ParseError { msg: format!("Invalid number '{}'", number), cursor: self.curr_cur() })
+                Err(ParseError { msg: format!("Invalid number '{}'", number), cursor: cur })
             }
         }
     }
@@ -160,16 +152,15 @@ impl CodeParser {
     }
 
     fn eat_comma(&mut self) -> ReadResult {
-        self.eat_comment();
         let cur = self.curr_cur();
+        self.eat_comment();
         while self.not_eof() {
             let c = self.code.chars().nth(self.curr_pos()).unwrap();
             if c == ',' {
                 self.cursor_next(c);
                 break;
             } else {
-                self.cursor_back(c.to_string());
-                return Err(ParseError { msg: "Expected comma".to_owned(), cursor: self.curr_cur() });
+                return Err(ParseError { msg: "Expected comma".to_owned(), cursor: cur });
             }
         }
         self.eat_comment();
