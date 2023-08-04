@@ -1,6 +1,6 @@
-use crate::vec_line_gen::{VecOps, VecOpsType};
+use crate::vec_line_gen::{VecLineGen, VecOpsType};
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct Cursor {
     pub row: usize,
     pub col: usize,
@@ -17,6 +17,8 @@ pub struct ParseError {
 pub struct CodeParser {
     pub code: String,
     pub cursor: Cursor,
+
+    gen: VecLineGen,
 }
 
 #[derive(Debug, Clone)]
@@ -36,7 +38,7 @@ enum TokenValue {
 
 impl Default for ParseError {
     fn default() -> Self {
-        Self { msg: "Internal Error".to_owned(), cursor: Cursor { row: 0, col: 0, pos: 0 } }
+        Self { msg: "Internal Error".to_owned(), cursor: Cursor::default() }
     }
 }
 
@@ -68,8 +70,16 @@ struct Token {
 type ReadResult = Result<Token, ParseError>;
 
 impl CodeParser {
-    pub fn new(code: String) -> Self {
-        Self { code, cursor: Cursor { row: 0, col: 0, pos: 0 } }
+    pub fn new(code: String, gen: VecLineGen) -> Self {
+        Self { code, cursor: Cursor::default(), gen }
+    }
+
+    pub fn parse(&mut self) -> Result<&VecLineGen, ParseError> {
+        self.eat_comment();
+        while self.curr_pos() < self.code.len() {
+            self.parse_op()?;
+        }
+        Ok(&self.gen)
     }
 
     fn cursor_next(&mut self, c: char) {
@@ -232,17 +242,7 @@ impl CodeParser {
         None
     }
 
-    pub fn parse(&mut self) -> Result<Vec<VecOps>, ParseError> {
-        let mut ops = Vec::new();
-        self.eat_comment();
-        while self.curr_pos() < self.code.len() {
-            let op = self.parse_op()?;
-            ops.push(op);
-        }
-        Ok(ops)
-    }
-
-    fn parse_op(&mut self) -> Result<VecOps, ParseError> {
+    fn parse_op(&mut self) -> Result<(), ParseError> {
         let ident = self.read_ident()?;
         let ident_cur = ident.cursor.clone();
         let ident_string = ident.value.into_string()?;
@@ -259,27 +259,27 @@ impl CodeParser {
         }
     }
 
-    fn parse_move(&mut self) -> Result<VecOps, ParseError> {
+    fn parse_move(&mut self) -> Result<(), ParseError> {
         let params = self.read_n_params(2)?;
-        Ok(VecOps::VecOpMove(params[0], params[1]))
+        Ok(self.gen.add_move(params[0], params[1]))
     }
 
-    fn parse_line(&mut self) -> Result<VecOps, ParseError> {
+    fn parse_line(&mut self) -> Result<(), ParseError> {
         let params = self.read_n_params(2)?;
-        Ok(VecOps::VecOpLine(params[0], params[1]))
+        Ok(self.gen.add_line(params[0], params[1]))
     }
 
-    fn parse_quad(&mut self) -> Result<VecOps, ParseError> {
+    fn parse_quad(&mut self) -> Result<(), ParseError> {
         let params = self.read_n_params(4)?;
-        Ok(VecOps::VecOpQuad(params[0], params[1], params[2], params[3]))
+        Ok(self.gen.add_quad(params[0], params[1], params[2], params[3]))
     }
 
-    fn parse_cubi(&mut self) -> Result<VecOps, ParseError> {
+    fn parse_cubi(&mut self) -> Result<(), ParseError> {
         let params = self.read_n_params(6)?;
-        Ok(VecOps::VecOpCubi(params[0], params[1], params[2], params[3], params[4], params[5]))
+        Ok(self.gen.add_cubi(params[0], params[1], params[2], params[3], params[4], params[5]))
     }
 
-    fn parse_end(&mut self) -> Result<VecOps, ParseError> {
-        Ok(VecOps::VecOpEnd)
+    fn parse_end(&mut self) -> Result<(), ParseError> {
+        Ok(self.gen.add_end())
     }
 }

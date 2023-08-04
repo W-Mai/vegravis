@@ -5,7 +5,7 @@ mod vec_line_gen;
 mod code_parser;
 mod cus_component;
 
-use std::ops::{Add, RangeInclusive};
+use std::ops::RangeInclusive;
 use std::vec;
 use log::error;
 use eframe::{egui};
@@ -120,21 +120,19 @@ impl eframe::App for MainApp {
                                     let mut has_error = false;
                                     plot.show(ui, |plot_ui| {
                                         if self.code != self.cache.code || self.params != self.cache.params {
-                                            let mut parser = code_parser::CodeParser::new(self.code.clone());
+                                            let mut parser = code_parser::CodeParser::new(self.code.clone(), VecLineGen::default());
 
                                             has_error = match parser.parse() {
-                                                Ok(parsed) => {
-                                                    let ops_count = parsed.len() as i64;
+                                                Ok(vlg) => {
+                                                    let ops_count = vlg.len() as i64;
                                                     self.params.vis_progress_max = ops_count;
                                                     if self.code != self.cache.code {
                                                         self.params.vis_progress = ops_count;
                                                     }
 
-                                                    let showed_ops = parsed.split_at(self.params.vis_progress as usize).0.clone();
-                                                    let showed_ops = showed_ops.to_vec();
-                                                    let mut vlg = VecLineGen::new(showed_ops);
+                                                    let parsed = vlg.gen(0..(self.params.vis_progress));
 
-                                                    self.cache.lines = vlg.gen();
+                                                    self.cache.lines = parsed.clone();
                                                     self.cache.code = self.code.clone();
                                                     self.cache.params = self.params.clone();
                                                     false

@@ -1,3 +1,4 @@
+use std::ops::{Range};
 use std::str::FromStr;
 use eframe::egui::plot::{PlotPoint};
 
@@ -9,7 +10,7 @@ pub enum VecOpsType {
     VecOpEnd,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum VecOps {
     VecOpMove(f64, f64),
     VecOpLine(f64, f64),
@@ -33,14 +34,14 @@ impl FromStr for VecOpsType {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct VecLineGen {
     ops: Vec<VecOps>,
-    cursor: PlotPoint,
 }
 
 impl VecLineGen {
     pub fn new(ops: Vec<VecOps>) -> Self {
-        Self { ops, cursor: PlotPoint::from([0.0, 0.0]) }
+        Self { ops }
     }
 
     pub fn add(&mut self, op: VecOps) {
@@ -67,13 +68,19 @@ impl VecLineGen {
         self.add(VecOps::VecOpEnd);
     }
 
-    pub fn gen(&mut self) -> Vec<Vec<[f64; 2]>> {
+    pub fn gen(&self, range: Range<i64>) -> Vec<Vec<[f64; 2]>> {
+        let mut cursor = PlotPoint::new(0.0, 0.0);
         let mut points_total = Vec::new();
         let mut points = Vec::new();
+        let mut counter = 0i64;
+
         for op in &self.ops {
+            if !range.contains(&counter) {
+                continue;
+            }
             match op {
                 VecOps::VecOpMove(x, y) => {
-                    self.cursor = PlotPoint::from([*x, *y]);
+                    cursor = PlotPoint::from([*x, *y]);
                     if points_total.len() == 0 {
                         points.push([0.0, 0.0]);
                     }
@@ -82,37 +89,49 @@ impl VecLineGen {
                     points.push([*x, *y]);
                 }
                 VecOps::VecOpLine(x, y) => {
-                    points.push([self.cursor.x, self.cursor.y]);
+                    points.push([cursor.x, cursor.y]);
                     points.push([*x, *y]);
-                    self.cursor = PlotPoint::from([*x, *y]);
+                    cursor = PlotPoint::from([*x, *y]);
                 }
                 VecOps::VecOpQuad(x1, y1, x2, y2) => {
                     let mut t = 0.0;
                     while t < 1.0 {
-                        let x = (1.0f64 - t).powi(2) * self.cursor.x + 2.0 * (1.0 - t) * t * x1 + t.powi(2) * x2;
-                        let y = (1.0f64 - t).powi(2) * self.cursor.y + 2.0 * (1.0 - t) * t * y1 + t.powi(2) * y2;
+                        let x = (1.0f64 - t).powi(2) * cursor.x + 2.0 * (1.0 - t) * t * x1 + t.powi(2) * x2;
+                        let y = (1.0f64 - t).powi(2) * cursor.y + 2.0 * (1.0 - t) * t * y1 + t.powi(2) * y2;
                         points.push([x, y]);
                         t += 0.01;
                     }
-                    self.cursor = PlotPoint::from([*x2, *y2]);
+                    cursor = PlotPoint::from([*x2, *y2]);
                 }
                 VecOps::VecOpCubi(x1, y1, x2, y2, x3, y3) => {
                     let mut t = 0.0;
                     while t < 1.0 {
-                        let x = (1.0f64 - t).powi(3) * self.cursor.x + 3.0 * (1.0 - t).powi(2) * t * x1 + 3.0 * (1.0 - t) * t.powi(2) * x2 + t.powi(3) * x3;
-                        let y = (1.0f64 - t).powi(3) * self.cursor.y + 3.0 * (1.0 - t).powi(2) * t * y1 + 3.0 * (1.0 - t) * t.powi(2) * y2 + t.powi(3) * y3;
+                        let x = (1.0f64 - t).powi(3) * cursor.x + 3.0 * (1.0 - t).powi(2) * t * x1 + 3.0 * (1.0 - t) * t.powi(2) * x2 + t.powi(3) * x3;
+                        let y = (1.0f64 - t).powi(3) * cursor.y + 3.0 * (1.0 - t).powi(2) * t * y1 + 3.0 * (1.0 - t) * t.powi(2) * y2 + t.powi(3) * y3;
                         points.push([x, y]);
                         t += 0.01;
                     }
-                    self.cursor = PlotPoint::from([*x3, *y3]);
+                    cursor = PlotPoint::from([*x3, *y3]);
                 }
                 VecOps::VecOpEnd => {}
             }
+
+            counter += 1;
         }
         if !points.is_empty() {
             points_total.push(points);
         }
 
         points_total
+    }
+
+    pub fn len(&self) -> usize {
+        self.ops.len()
+    }
+}
+
+impl Default for VecLineGen {
+    fn default() -> Self {
+        VecLineGen::new(vec![])
     }
 }
