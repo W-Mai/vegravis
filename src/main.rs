@@ -112,9 +112,9 @@ impl eframe::App for MainApp {
                                     let plot = Plot::new("plot").data_aspect(1.0)
                                         .y_axis_formatter(
                                             if self.params.lcd_coords {
-                                                |y: f64, _range: &RangeInclusive<f64>| format!("{:.2}", -y)
+                                                |y: f64, _range: &RangeInclusive<f64>| format!("{:.0}", -y)
                                             } else {
-                                                |y: f64, _range: &RangeInclusive<f64>| format!("{:.2}", y)
+                                                |y: f64, _range: &RangeInclusive<f64>| format!("{:.0}", y)
                                             }
                                         );
                                     let mut has_error = false;
@@ -187,13 +187,15 @@ impl eframe::App for MainApp {
                                 });
                                 strip.strip(|builder| {
                                     builder
-                                        .size(Size::exact(100.0))
+                                        .size(Size::exact(60.0))
                                         .size(Size::exact(30.0))
                                         .size(Size::remainder())
                                         .vertical(|mut strip| {
                                             strip.cell(|ui| {
                                                 egui::ScrollArea::vertical().show(ui, |ui| {
-                                                    ui.heading("Controls");
+                                                    ui.vertical_centered(|ui| {
+                                                        ui.heading("Controls");
+                                                    });
                                                     ui.horizontal_wrapped(|ui| {
                                                         ui.add(toggle("LCD Coordinates", &mut self.params.lcd_coords));
                                                         ui.add(toggle("Show Intermediate Dash", &mut self.params.show_inter_dash));
