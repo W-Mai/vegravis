@@ -1,6 +1,8 @@
 use std::ops::{Range};
 use std::str::FromStr;
 use eframe::egui::plot::{PlotPoint};
+use levenshtein::levenshtein;
+use log::error;
 
 pub enum VecOpsType {
     VecOpMove,
@@ -8,6 +10,8 @@ pub enum VecOpsType {
     VecOpQuad,
     VecOpCubi,
     VecOpEnd,
+
+    VecOpInvalid(String),
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +33,23 @@ impl FromStr for VecOpsType {
             "quad" => Ok(VecOpsType::VecOpQuad),
             "cubi" => Ok(VecOpsType::VecOpCubi),
             "end" => Ok(VecOpsType::VecOpEnd),
-            _ => Err(()),
+            _ => {
+                // calc levenshtein distance from move, line, quad, cubi, end
+                let mut dists = vec![];
+                dists.push((levenshtein(s, "move"), "move"));
+                dists.push((levenshtein(s, "line"), "line"));
+                dists.push((levenshtein(s, "quad"), "quad"));
+                dists.push((levenshtein(s, "cubi"), "cubi"));
+                dists.push((levenshtein(s, "end"), "end"));
+                dists.sort_by(|a, b| a.0.cmp(&b.0));
+                let mut dists = dists.into_iter();
+                let (dist, op) = dists.next().unwrap();
+                if dist >= 3 {
+                    return Err(());
+                }
+                error!("Invalid op type '{}', maybe it is '{}', distance {}", s, op, dist);
+                Ok(VecOpsType::VecOpInvalid(op.to_owned()))
+            }
         }
     }
 }

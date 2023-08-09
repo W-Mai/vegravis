@@ -276,8 +276,13 @@ impl CodeParser {
             Ok(VecOpsType::VecOpQuad) => self.parse_quad(),
             Ok(VecOpsType::VecOpCubi) => self.parse_cubi(),
             Ok(VecOpsType::VecOpEnd) => self.parse_end(),
+            Ok(VecOpsType::VecOpInvalid(maybe_op)) => Err(ParseError { msg: format!("Invalid op type '{}', maybe it is '{}'", ident_string, maybe_op), cursor: ident_cur.0 }),
             _ => {
-                Err(ParseError { msg: format!("Invalid op type '{}'", ident_string), cursor: ident_cur.0 })
+                if ident_string.len() == 0 {
+                    Err(ParseError { msg: "Empty op type".to_owned(), cursor: ident_cur.0 })
+                } else {
+                    Err(ParseError { msg: format!("Invalid op type '{}'", ident_string), cursor: ident_cur.0 })
+                }
             }
         }
     }
