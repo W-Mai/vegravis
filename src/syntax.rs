@@ -1,20 +1,19 @@
-use egui_code_editor::Syntax;
-use std::collections::HashSet;
+use crate::interfaces::{CommandDescription, ICommandSyntax};
 
-pub fn vec_op_syntax() -> Syntax {
-    Syntax {
-        language: "VecOp",
-        case_sensitive: false,
-        comment: "//",
-        comment_multiline: ["/*", "*/"],
-        keywords: HashSet::from([
-            "MOVE",
-            "LINE",
-            "QUAD",
-            "CUBI",
-            "END"
-        ]),
-        types: HashSet::from([]),
-        special: HashSet::from([]),
+pub struct CommonVecOpSyntax {}
+
+impl ICommandSyntax for CommonVecOpSyntax {
+    fn name(&self) -> &'static str {
+        "CommonVecOpSyntax"
+    }
+
+    fn formats(&self) -> Vec<CommandDescription> {
+        return vec![
+            CommandDescription { name: "MOVE", argc: 2 },
+            CommandDescription { name: "LINE", argc: 2 },
+            CommandDescription { name: "QUAD", argc: 4 },
+            CommandDescription { name: "CUBI", argc: 6 },
+            CommandDescription { name: "END", argc: 0 },
+        ];
     }
 }

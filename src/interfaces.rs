@@ -1,12 +1,16 @@
+use std::collections::HashSet;
 use std::ops::Range;
 use eframe::egui;
 use eframe::emath::Numeric;
+use egui_code_editor::Syntax;
 
+#[derive(Debug, Clone)]
 pub struct CommandDescription {
-    pub name: String,
+    pub name: &'static str,
     pub argc: usize,
 }
 
+#[derive(Debug, Clone)]
 pub struct Command<T> {
     pub dsc: CommandDescription,
     pub argv: Vec<T>,
@@ -32,7 +36,23 @@ impl Default for ParseError {
 }
 
 pub trait ICommandSyntax {
+    fn name(&self) -> &'static str;
     fn formats(&self) -> Vec<CommandDescription>;
+    fn syntax(&self) -> Syntax {
+        let keywords = self.formats().iter().map(|cmd| cmd.name).collect::<HashSet<&str>>();
+        let types = HashSet::new();
+        let special = HashSet::new();
+
+        Syntax {
+            language: self.name(),
+            case_sensitive: false,
+            comment: "//",
+            comment_multiline: ["/*", "*/"],
+            keywords,
+            types,
+            special,
+        }
+    }
 }
 
 pub trait IDataSource<ST> {

@@ -14,9 +14,9 @@ use eframe::egui::plot::{Line, LineStyle, Plot};
 use eframe::egui::Stroke;
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
-use crate::interfaces::ParseError;
+use crate::interfaces::{ICommandSyntax, ParseError};
 use crate::cus_component::toggle;
-use crate::syntax::vec_op_syntax;
+use crate::syntax::{CommonVecOpSyntax};
 use crate::vec_line_gen::VecLineGen;
 
 const DEFAULT_CODE: &str = include_str!("default_code");
@@ -218,7 +218,7 @@ impl eframe::App for MainApp {
                                                     .with_rows(12)
                                                     .with_fontsize(14.0)
                                                     .with_theme(ColorTheme::SONOKAI)
-                                                    .with_syntax(vec_op_syntax())
+                                                    .with_syntax(CommonVecOpSyntax {}.syntax())
                                                     .with_numlines(true)
                                                     .show(ui, &mut self.code);
                                             });
