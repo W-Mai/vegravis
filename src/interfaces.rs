@@ -3,6 +3,7 @@ use std::ops::Range;
 use eframe::egui;
 use eframe::emath::Numeric;
 use egui_code_editor::Syntax;
+use levenshtein::levenshtein;
 
 #[derive(Debug, Clone)]
 pub struct CommandDescription {
@@ -12,7 +13,7 @@ pub struct CommandDescription {
 
 #[derive(Debug, Clone)]
 pub struct Command<T> {
-    pub dsc: CommandDescription,
+    pub dsc: &'static CommandDescription,
     pub argv: Vec<T>,
 }
 
@@ -37,7 +38,11 @@ impl Default for ParseError {
 
 pub trait ICommandSyntax {
     fn name(&self) -> &'static str;
-    fn formats(&self) -> Vec<CommandDescription>;
+
+    fn case_sensitive(&self) -> bool {
+        false
+    }
+    fn formats(&self) -> Vec<&'static CommandDescription>;
     fn syntax(&self) -> Syntax {
         let keywords = self.formats().iter().map(|cmd| cmd.name).collect::<HashSet<&str>>();
         let types = HashSet::new();
@@ -45,13 +50,35 @@ pub trait ICommandSyntax {
 
         Syntax {
             language: self.name(),
-            case_sensitive: false,
+            case_sensitive: self.case_sensitive(),
             comment: "//",
             comment_multiline: ["/*", "*/"],
             keywords,
             types,
             special,
         }
+    }
+
+    fn match_command(&self, cmd: &str) -> Result<&'static CommandDescription, &str> {
+        let cmd = cmd.to_owned();
+        let cmd = if self.case_sensitive() { cmd } else { cmd.to_uppercase() };
+        let cmd = cmd.as_str();
+        for desc in self.formats() {
+            if desc.name == cmd {
+                return Ok(desc);
+            }
+        }
+        let mut dists = vec![];
+        for desc in self.formats() {
+            dists.push((levenshtein(cmd, desc.name), desc.name));
+        }
+        dists.sort_by(|a, b| a.0.cmp(&b.0));
+        let mut dists = dists.into_iter();
+        let (dist, op) = dists.next().unwrap();
+        if dist >= 3 {
+            return Err("");
+        }
+        Err(op)
     }
 }
 

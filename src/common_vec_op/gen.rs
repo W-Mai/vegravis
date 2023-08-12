@@ -3,6 +3,8 @@ use std::str::FromStr;
 use eframe::egui::plot::{PlotPoint};
 use levenshtein::levenshtein;
 use log::error;
+use crate::interfaces::{CommandDescription, ICommandSyntax};
+use crate::syntax::CommonVecOpSyntax;
 
 pub enum VecOpsType {
     VecOpMove,
@@ -27,28 +29,27 @@ impl FromStr for VecOpsType {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "move" => Ok(VecOpsType::VecOpMove),
-            "line" => Ok(VecOpsType::VecOpLine),
-            "quad" => Ok(VecOpsType::VecOpQuad),
-            "cubi" => Ok(VecOpsType::VecOpCubi),
-            "end" => Ok(VecOpsType::VecOpEnd),
-            _ => {
-                // calc levenshtein distance from move, line, quad, cubi, end
-                let mut dists = vec![];
-                dists.push((levenshtein(s, "move"), "move"));
-                dists.push((levenshtein(s, "line"), "line"));
-                dists.push((levenshtein(s, "quad"), "quad"));
-                dists.push((levenshtein(s, "cubi"), "cubi"));
-                dists.push((levenshtein(s, "end"), "end"));
-                dists.sort_by(|a, b| a.0.cmp(&b.0));
-                let mut dists = dists.into_iter();
-                let (dist, op) = dists.next().unwrap();
-                if dist >= 3 {
-                    return Err(());
+        let m = CommonVecOpSyntax {}.match_command(s);
+
+        match m {
+            Ok(&CommandDescription { name, argc: _argc }) => {
+                match name {
+                    "MOVE" => Ok(VecOpsType::VecOpMove),
+                    "LINE" => Ok(VecOpsType::VecOpLine),
+                    "QUAD" => Ok(VecOpsType::VecOpQuad),
+                    "CUBI" => Ok(VecOpsType::VecOpCubi),
+                    "END" => Ok(VecOpsType::VecOpEnd),
+                    _ => {
+                        unreachable!()
+                    }
                 }
-                error!("Invalid op type '{}', maybe it is '{}', distance {}", s, op, dist);
-                Ok(VecOpsType::VecOpInvalid(op.to_owned()))
+            }
+            Err(maybe_cmd) => {
+                if maybe_cmd.len() > 0 {
+                    Ok(VecOpsType::VecOpInvalid(maybe_cmd.to_owned()))
+                } else {
+                    Err(())
+                }
             }
         }
     }

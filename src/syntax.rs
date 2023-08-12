@@ -7,13 +7,13 @@ impl ICommandSyntax for CommonVecOpSyntax {
         "CommonVecOpSyntax"
     }
 
-    fn formats(&self) -> Vec<CommandDescription> {
+    fn formats(&self) -> Vec<&'static CommandDescription> {
         return vec![
-            CommandDescription { name: "MOVE", argc: 2 },
-            CommandDescription { name: "LINE", argc: 2 },
-            CommandDescription { name: "QUAD", argc: 4 },
-            CommandDescription { name: "CUBI", argc: 6 },
-            CommandDescription { name: "END", argc: 0 },
+            &CommandDescription { name: "MOVE", argc: 2 },
+            &CommandDescription { name: "LINE", argc: 2 },
+            &CommandDescription { name: "QUAD", argc: 4 },
+            &CommandDescription { name: "CUBI", argc: 6 },
+            &CommandDescription { name: "END", argc: 0 },
         ];
     }
 }
