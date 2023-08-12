@@ -13,8 +13,8 @@ use eframe::egui::plot::{Line, LineStyle, Plot};
 use eframe::egui::Stroke;
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
-use crate::common_vec_op::{CodeParser, VecLineGen};
-use crate::interfaces::{ICommandSyntax, ParseError};
+use crate::common_vec_op::{CodeParser, VecLineData, VecLineGen};
+use crate::interfaces::{ICommandSyntax, IVisData, IVisDataGenerator, ParseError};
 use crate::cus_component::toggle;
 use crate::syntax::{CommonVecOpSyntax};
 
@@ -51,7 +51,7 @@ fn main() -> Result<(), eframe::Error> {
 
 struct MainAppCache {
     code: String,
-    lines: Vec<Vec<[f64; 2]>>,
+    lines: Vec<Vec<VecLineData>>,
 
     params: MainAppParams,
 }
@@ -157,11 +157,11 @@ impl eframe::App for MainApp {
                                         for points in lines.into_iter() {
                                             let mut points = points;
                                             if self.params.lcd_coords {
-                                                points = points.into_iter().map(|[x, y]| [x, -y]).collect::<Vec<[f64; 2]>>();
+                                                points = points.into_iter().map(|v| VecLineData::new(v.pos()[0], v.pos()[1])).collect::<Vec<VecLineData>>();
                                             }
                                             let curr_line_start = points.first().unwrap().clone();
                                             if last_line_end != curr_line_start && self.params.show_inter_dash {
-                                                let drawn_lines = Line::new(vec![last_line_end, curr_line_start])
+                                                let drawn_lines = Line::new(vec![last_line_end.pos(), curr_line_start.pos()])
                                                     .style(LineStyle::dashed_dense());
                                                 plot_ui.line(if has_error {
                                                     drawn_lines.stroke(Stroke::new(2.0, egui::Color32::LIGHT_RED))
@@ -170,6 +170,7 @@ impl eframe::App for MainApp {
                                                 });
                                             }
                                             last_line_end = points.last().unwrap().clone();
+                                            let points: Vec<[f64; 2]> = points.into_iter().map(|v| v.pos()).collect();
                                             let drawn_lines = Line::new(points);
                                             plot_ui.line(if has_error {
                                                 drawn_lines.color(egui::Color32::DARK_RED).width(5.0)

@@ -11,6 +11,17 @@ pub struct CommandDescription {
     pub argc: usize,
 }
 
+impl CommandDescription {
+    pub fn pack<T: Numeric>(&'static self, argv: Vec<T>) -> Command<T> {
+        assert_eq!(argv.len(), self.argc);
+
+        Command {
+            dsc: self,
+            argv,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Command<T> {
     pub dsc: &'static CommandDescription,
@@ -97,13 +108,15 @@ pub trait IEncoder {
 pub trait IVisDataGenerator<CT: Numeric, PT: Numeric, VDT: IVisData<PT>> {
     fn add(&mut self, op: Command<CT>);
 
-    fn gen(&self, range: Range<i64>) -> Vec<VDT>;
+    fn gen(&self, range: Range<i64>) -> Vec<Vec<VDT>>;
+
+    fn len(&self) -> usize;
 }
 
 pub trait IVisData<PT: Numeric> {
     fn new(x: PT, y: PT) -> Self;
 
-    fn pos(&self) -> (PT, PT);
+    fn pos(&self) -> [PT; 2];
 }
 
 pub trait IVisualizer<PT: Numeric, VDT: IVisData<PT>> {

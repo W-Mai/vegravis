@@ -1,9 +1,7 @@
 use std::ops::{Range};
 use std::str::FromStr;
 use eframe::egui::plot::{PlotPoint};
-use levenshtein::levenshtein;
-use log::error;
-use crate::interfaces::{CommandDescription, ICommandSyntax};
+use crate::interfaces::{Command, CommandDescription, ICommandSyntax, IVisData, IVisDataGenerator};
 use crate::syntax::CommonVecOpSyntax;
 
 pub enum VecOpsType {
@@ -55,6 +53,25 @@ impl FromStr for VecOpsType {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct VecLineData {
+    x: f64,
+    y: f64,
+}
+
+impl IVisData<f64> for VecLineData {
+    fn new(x: f64, y: f64) -> Self {
+        VecLineData {
+            x,
+            y,
+        }
+    }
+
+    fn pos(&self) -> [f64; 2] {
+        [self.x, self.y]
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct VecLineGen {
     ops: Vec<VecOps>,
@@ -65,7 +82,7 @@ impl VecLineGen {
         Self { ops }
     }
 
-    pub fn add(&mut self, op: VecOps) {
+    fn add(&mut self, op: VecOps) {
         self.ops.push(op);
     }
 
@@ -89,7 +106,7 @@ impl VecLineGen {
         self.add(VecOps::VecOpEnd);
     }
 
-    pub fn gen(&self, range: Range<i64>) -> Vec<Vec<[f64; 2]>> {
+    fn gen(&self, range: Range<i64>) -> Vec<Vec<[f64; 2]>> {
         let mut cursor = PlotPoint::new(0.0, 0.0);
         let mut points_total = Vec::new();
         let mut points = Vec::new();
@@ -145,8 +162,50 @@ impl VecLineGen {
 
         points_total
     }
+}
 
-    pub fn len(&self) -> usize {
+impl IVisDataGenerator<f64, f64, VecLineData> for VecLineGen {
+    fn add(&mut self, op: Command<f64>) {
+        let dsc = op.dsc;
+        let argv = op.argv;
+        let cmd_name = dsc.name;
+
+        match cmd_name {
+            "MOVE" => {
+                self.add_move(argv[0], argv[1]);
+            }
+            "LINE" => {
+                self.add_line(argv[0], argv[1]);
+            }
+            "QUAD" => {
+                self.add_quad(argv[0], argv[1], argv[2], argv[3])
+            }
+            "CUBI" => {
+                self.add_cubi(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+            }
+            "END" => {
+                self.add_end();
+            }
+            _ => {}
+        }
+    }
+
+    fn gen(&self, range: Range<i64>) -> Vec<Vec<VecLineData>> {
+        let data = self.gen(range);
+        let mut ret = Vec::new();
+
+        for line in data {
+            let mut vec_line_datas = Vec::new();
+            for pos in line {
+                vec_line_datas.push(VecLineData::new(pos[0], pos[1]));
+            }
+            ret.push(vec_line_datas);
+        }
+
+        ret
+    }
+
+    fn len(&self) -> usize {
         self.ops.len()
     }
 }
