@@ -4,6 +4,7 @@ mod syntax;
 mod vec_line_gen;
 mod code_parser;
 mod cus_component;
+mod interfaces;
 
 use std::ops::RangeInclusive;
 use std::vec;
@@ -13,7 +14,7 @@ use eframe::egui::plot::{Line, LineStyle, Plot};
 use eframe::egui::Stroke;
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
-use crate::code_parser::ParseError;
+use crate::interfaces::ParseError;
 use crate::cus_component::toggle;
 use crate::syntax::vec_op_syntax;
 use crate::vec_line_gen::VecLineGen;

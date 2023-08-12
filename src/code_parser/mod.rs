@@ -1,17 +1,5 @@
+use crate::interfaces::{Cursor, ParseError};
 use crate::vec_line_gen::{VecLineGen, VecOpsType};
-
-#[derive(Default, Debug, Clone)]
-pub struct Cursor {
-    pub row: usize,
-    pub col: usize,
-    pub pos: usize,
-}
-
-#[derive(Debug, Clone)]
-pub struct ParseError {
-    pub msg: String,
-    pub cursor: Cursor,
-}
 
 #[derive(Debug, Clone)]
 pub struct CodeParser {
@@ -34,12 +22,6 @@ enum TokenValue {
     Number(f64),
     Comment(String),
     Comma,
-}
-
-impl Default for ParseError {
-    fn default() -> Self {
-        Self { msg: "Internal Error".to_owned(), cursor: Cursor::default() }
-    }
 }
 
 impl TokenValue {
