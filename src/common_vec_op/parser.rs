@@ -1,5 +1,5 @@
+use crate::common_vec_op::gen::{VecLineGen, VecOpsType};
 use crate::interfaces::{Cursor, ParseError};
-use crate::vec_line_gen::{VecLineGen, VecOpsType};
 
 #[derive(Debug, Clone)]
 pub struct CodeParser {

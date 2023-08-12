@@ -1,8 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 mod syntax;
-mod vec_line_gen;
-mod code_parser;
+mod common_vec_op;
 mod cus_component;
 mod interfaces;
 
@@ -14,10 +13,10 @@ use eframe::egui::plot::{Line, LineStyle, Plot};
 use eframe::egui::Stroke;
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
+use crate::common_vec_op::{CodeParser, VecLineGen};
 use crate::interfaces::{ICommandSyntax, ParseError};
 use crate::cus_component::toggle;
 use crate::syntax::{CommonVecOpSyntax};
-use crate::vec_line_gen::VecLineGen;
 
 const DEFAULT_CODE: &str = include_str!("default_code");
 
@@ -121,7 +120,7 @@ impl eframe::App for MainApp {
                                     let mut has_error = false;
                                     plot.show(ui, |plot_ui| {
                                         if self.code != self.cache.code || self.params != self.cache.params {
-                                            let mut parser = code_parser::CodeParser::new(self.code.clone(), VecLineGen::default());
+                                            let mut parser = CodeParser::new(self.code.clone(), VecLineGen::default());
 
                                             has_error = match parser.parse() {
                                                 Ok(vlg) => {
