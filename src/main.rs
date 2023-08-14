@@ -64,6 +64,8 @@ struct MainAppParams {
     lcd_coords: bool,
     show_inter_dash: bool,
     colorful_block: bool,
+
+    trans_matrix: [[f64; 3]; 3],
 }
 
 struct MainApp {
@@ -92,6 +94,12 @@ impl Default for MainApp {
 
 impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.params.trans_matrix = [
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+        ]; // Identity matrix
+
         egui::CentralPanel::default().show(ctx, |ui| {
             StripBuilder::new(ui)
                 .size(Size::exact(30.0))
@@ -157,7 +165,8 @@ impl eframe::App for MainApp {
                                         for points in lines.into_iter() {
                                             let mut points = points;
                                             if self.params.lcd_coords {
-                                                points = points.into_iter().map(|v| VecLineData::new(v.pos()[0], v.pos()[1])).collect::<Vec<VecLineData>>();
+                                                self.params.trans_matrix[1][1] = -1.0;
+                                                points = points.into_iter().map(|v| v.matrix(self.params.trans_matrix)).collect::<Vec<VecLineData>>();
                                             }
                                             let curr_line_start = points.first().unwrap().clone();
                                             if last_line_end != curr_line_start && self.params.show_inter_dash {

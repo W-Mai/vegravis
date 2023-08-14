@@ -117,6 +117,8 @@ pub trait IVisData<PT: Numeric> {
     fn new(x: PT, y: PT) -> Self;
 
     fn pos(&self) -> [PT; 2];
+
+    fn matrix(&self, matrix: [[PT; 3]; 3]) -> Self;
 }
 
 pub trait IVisualizer<PT: Numeric, VDT: IVisData<PT>> {
