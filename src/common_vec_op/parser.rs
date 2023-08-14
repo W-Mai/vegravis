@@ -1,5 +1,6 @@
-use crate::common_vec_op::gen::{VecLineGen, VecOpsType};
-use crate::interfaces::{Cursor, ParseError};
+use crate::common_vec_op::gen::VecLineGen;
+use crate::interfaces::{Cursor, ICommandSyntax, IVisDataGenerator, ParseError};
+use crate::syntax::CommonVecOpSyntax;
 
 #[derive(Debug, Clone)]
 pub struct CodeParser {
@@ -252,44 +253,22 @@ impl CodeParser {
         let ident_cur = ident.cursor.clone();
         let ident_string = ident.value.into_string()?;
         self.eat_comma()?;
-        match ident_string.parse() {
-            Ok(VecOpsType::VecOpMove) => self.parse_move(),
-            Ok(VecOpsType::VecOpLine) => self.parse_line(),
-            Ok(VecOpsType::VecOpQuad) => self.parse_quad(),
-            Ok(VecOpsType::VecOpCubi) => self.parse_cubi(),
-            Ok(VecOpsType::VecOpEnd) => self.parse_end(),
-            Ok(VecOpsType::VecOpInvalid(maybe_op)) => Err(ParseError { msg: format!("Invalid op type '{}', maybe it is '{}'", ident_string, maybe_op), cursor: ident_cur.0 }),
-            _ => {
+        let cmd = CommonVecOpSyntax {}.match_command(ident_string.as_str());
+
+        match cmd {
+            Ok(dsc) => {
+                let params = self.read_n_params(dsc.argc)?;
+                return Ok(self.gen.add(dsc.pack(params)));
+            }
+            Err(maybe_cmd) => {
                 if ident_string.len() == 0 {
                     Err(ParseError { msg: "Empty op type".to_owned(), cursor: ident_cur.0 })
+                } else if maybe_cmd.len() > 0 {
+                    Err(ParseError { msg: format!("Invalid op type '{}', maybe it is '{}'", ident_string, maybe_cmd), cursor: ident_cur.0 })
                 } else {
                     Err(ParseError { msg: format!("Invalid op type '{}'", ident_string), cursor: ident_cur.0 })
                 }
             }
         }
-    }
-
-    fn parse_move(&mut self) -> Result<(), ParseError> {
-        let params = self.read_n_params(2)?;
-        Ok(self.gen.add_move(params[0], params[1]))
-    }
-
-    fn parse_line(&mut self) -> Result<(), ParseError> {
-        let params = self.read_n_params(2)?;
-        Ok(self.gen.add_line(params[0], params[1]))
-    }
-
-    fn parse_quad(&mut self) -> Result<(), ParseError> {
-        let params = self.read_n_params(4)?;
-        Ok(self.gen.add_quad(params[0], params[1], params[2], params[3]))
-    }
-
-    fn parse_cubi(&mut self) -> Result<(), ParseError> {
-        let params = self.read_n_params(6)?;
-        Ok(self.gen.add_cubi(params[0], params[1], params[2], params[3], params[4], params[5]))
-    }
-
-    fn parse_end(&mut self) -> Result<(), ParseError> {
-        Ok(self.gen.add_end())
     }
 }

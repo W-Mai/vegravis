@@ -1,18 +1,6 @@
 use std::ops::{Range};
-use std::str::FromStr;
 use eframe::egui::plot::{PlotPoint};
-use crate::interfaces::{Command, CommandDescription, ICommandSyntax, IVisData, IVisDataGenerator};
-use crate::syntax::CommonVecOpSyntax;
-
-pub enum VecOpsType {
-    VecOpMove,
-    VecOpLine,
-    VecOpQuad,
-    VecOpCubi,
-    VecOpEnd,
-
-    VecOpInvalid(String),
-}
+use crate::interfaces::{Command, IVisData, IVisDataGenerator};
 
 #[derive(Debug, Clone)]
 pub enum VecOps {
@@ -21,36 +9,6 @@ pub enum VecOps {
     VecOpQuad(f64, f64, f64, f64),
     VecOpCubi(f64, f64, f64, f64, f64, f64),
     VecOpEnd,
-}
-
-impl FromStr for VecOpsType {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let m = CommonVecOpSyntax {}.match_command(s);
-
-        match m {
-            Ok(&CommandDescription { name, argc: _argc }) => {
-                match name {
-                    "MOVE" => Ok(VecOpsType::VecOpMove),
-                    "LINE" => Ok(VecOpsType::VecOpLine),
-                    "QUAD" => Ok(VecOpsType::VecOpQuad),
-                    "CUBI" => Ok(VecOpsType::VecOpCubi),
-                    "END" => Ok(VecOpsType::VecOpEnd),
-                    _ => {
-                        unreachable!()
-                    }
-                }
-            }
-            Err(maybe_cmd) => {
-                if maybe_cmd.len() > 0 {
-                    Ok(VecOpsType::VecOpInvalid(maybe_cmd.to_owned()))
-                } else {
-                    Err(())
-                }
-            }
-        }
-    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
