@@ -94,11 +94,14 @@ pub trait ICommandSyntax {
 }
 
 pub trait IDataSource<ST> {
+    fn new(code: ST) -> Self;
     fn get(&self, name: &str) -> Option<ST>;
 }
 
 pub trait IParser<PT: Numeric, ST, CT: Numeric, VDT: IVisData<PT>, DST: IDataSource<ST>, G: IVisDataGenerator<CT, PT, VDT>> {
-    fn parse(&self, input: DST) -> Result<G, String>;
+    fn new(code: DST, gen: G) -> Self;
+
+    fn parse(&mut self) -> Result<&G, ParseError>;
 }
 
 pub trait IEncoder {

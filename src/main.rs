@@ -13,8 +13,8 @@ use eframe::egui::plot::{Line, LineStyle, Plot};
 use eframe::egui::Stroke;
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
-use crate::common_vec_op::{CodeParser, VecLineData, VecLineGen};
-use crate::interfaces::{ICommandSyntax, IVisData, IVisDataGenerator, ParseError};
+use crate::common_vec_op::{CodeParser, TextDataSrc, VecLineData, VecLineGen};
+use crate::interfaces::{ICommandSyntax, IDataSource, IParser, IVisData, IVisDataGenerator, ParseError};
 use crate::cus_component::toggle;
 use crate::syntax::{CommonVecOpSyntax};
 
@@ -128,7 +128,7 @@ impl eframe::App for MainApp {
                                     let mut has_error = false;
                                     plot.show(ui, |plot_ui| {
                                         if self.code != self.cache.code || self.params != self.cache.params {
-                                            let mut parser = CodeParser::new(self.code.clone(), VecLineGen::default());
+                                            let mut parser = CodeParser::new(TextDataSrc::new(self.code.clone()), VecLineGen::default());
 
                                             has_error = match parser.parse() {
                                                 Ok(vlg) => {

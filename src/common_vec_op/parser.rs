@@ -1,5 +1,7 @@
+use crate::common_vec_op::data_src::TextDataSrc;
 use crate::common_vec_op::gen::VecLineGen;
-use crate::interfaces::{Cursor, ICommandSyntax, IVisDataGenerator, ParseError};
+use crate::common_vec_op::VecLineData;
+use crate::interfaces::{Cursor, ICommandSyntax, IDataSource, IParser, IVisDataGenerator, ParseError};
 use crate::syntax::CommonVecOpSyntax;
 
 #[derive(Debug, Clone)]
@@ -52,19 +54,24 @@ struct Token {
 
 type ReadResult = Result<Token, ParseError>;
 
-impl CodeParser {
-    pub fn new(code: String, gen: VecLineGen) -> Self {
-        Self { code, cursor: Cursor::default(), gen }
+impl IParser<f64, String, f64, VecLineData, TextDataSrc, VecLineGen> for CodeParser {
+    fn new(code: TextDataSrc, gen: VecLineGen) -> Self {
+        match code.get("") {
+            None => { Self { code: "".to_owned(), cursor: Cursor::default(), gen } }
+            Some(s) => { Self { code: s.to_owned(), cursor: Cursor::default(), gen } }
+        }
     }
 
-    pub fn parse(&mut self) -> Result<&VecLineGen, ParseError> {
+    fn parse(&mut self) -> Result<&VecLineGen, ParseError> {
         self.eat_comments()?;
         while self.curr_pos() < self.code.len() {
             self.parse_op()?;
         }
         Ok(&self.gen)
     }
+}
 
+impl CodeParser {
     fn cursor_next(&mut self, c: char) {
         self.cursor.pos += 1;
         self.cursor.col += 1;
