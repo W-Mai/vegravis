@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::ops::Range;
 use eframe::egui;
+use eframe::egui::Ui;
 use eframe::emath::Numeric;
 use egui_code_editor::Syntax;
 use levenshtein::levenshtein;
@@ -125,7 +126,10 @@ pub trait IVisData<PT: Numeric> {
 }
 
 pub trait IVisualizer<PT: Numeric, VDT: IVisData<PT>> {
-    fn plot(&self, input: VDT);
+    fn new(transform: [[f64; 3]; 3]) -> Self;
+    fn plot(&self, ui: &mut Ui, input: Vec<Vec<VDT>>, has_error: bool, show_inter_dash: bool, colorful_block: bool);
+
+    fn transform(&mut self, matrix: [[f64; 3]; 3]);
 }
 
 pub trait ICodeEditor<ST, DST: IDataSource<ST>, CST: ICommandSyntax> {

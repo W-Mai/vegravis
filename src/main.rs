@@ -5,16 +5,13 @@ mod common_vec_op;
 mod cus_component;
 mod interfaces;
 
-use std::ops::RangeInclusive;
 use std::vec;
 use log::error;
 use eframe::{egui};
-use eframe::egui::plot::{Line, LineStyle, Plot};
-use eframe::egui::Stroke;
 use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
-use crate::common_vec_op::{CodeParser, TextDataSrc, VecLineData, VecLineGen};
-use crate::interfaces::{ICommandSyntax, IDataSource, IParser, IVisData, IVisDataGenerator, ParseError};
+use crate::common_vec_op::{CodeParser, CommonVecVisualizer, TextDataSrc, VecLineData, VecLineGen};
+use crate::interfaces::{ICommandSyntax, IDataSource, IParser, IVisDataGenerator, IVisualizer, ParseError};
 use crate::cus_component::toggle;
 use crate::syntax::{CommonVecOpSyntax};
 
@@ -120,84 +117,40 @@ impl eframe::App for MainApp {
                                     if self.params.lcd_coords {
                                         self.params.trans_matrix[1][1] = -1.0;
                                     }
-                                    let (a, b,
-                                        c, d) = (
-                                        self.params.trans_matrix[0][0], self.params.trans_matrix[1][1],
-                                        self.params.trans_matrix[0][2], self.params.trans_matrix[1][2]);
-                                    let plot = Plot::new("plot").data_aspect(1.0)
-                                        .x_axis_formatter(
-                                            move |x: f64, _range: &RangeInclusive<f64>| format!("{:.0}", a * x + c)
-                                        )
-                                        .y_axis_formatter(
-                                            move |y: f64, _range: &RangeInclusive<f64>| format!("{:.0}", b * y + d)
-                                        );
+                                    let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
 
                                     let mut has_error = false;
-                                    plot.show(ui, |plot_ui| {
-                                        if self.code != self.cache.code || self.params != self.cache.params {
-                                            let mut parser = CodeParser::new(TextDataSrc::new(self.code.clone()), VecLineGen::default());
+                                    if self.code != self.cache.code || self.params != self.cache.params {
+                                        let mut parser = CodeParser::new(TextDataSrc::new(self.code.clone()), VecLineGen::default());
 
-                                            has_error = match parser.parse() {
-                                                Ok(vlg) => {
-                                                    let ops_count = vlg.len() as i64;
-                                                    self.params.vis_progress_max = ops_count;
-                                                    if self.code != self.cache.code {
-                                                        self.params.vis_progress = ops_count;
-                                                    }
-
-                                                    let parsed = vlg.gen(0..(self.params.vis_progress));
-
-                                                    self.cache.lines = parsed.clone();
-                                                    self.cache.code = self.code.clone();
-                                                    self.cache.params = self.params.clone();
-                                                    false
+                                        has_error = match parser.parse() {
+                                            Ok(vlg) => {
+                                                let ops_count = vlg.len() as i64;
+                                                self.params.vis_progress_max = ops_count;
+                                                if self.code != self.cache.code {
+                                                    self.params.vis_progress = ops_count;
                                                 }
-                                                Err(e) => {
-                                                    error!("Error: {:?}", e);
-                                                    self.error = Some(e);
-                                                    true
-                                                }
-                                            }
-                                        }
 
-                                        if !has_error {
-                                            self.error = None;
-                                        }
-                                        let lines = self.cache.lines.clone();
-                                        if lines.len() == 0 {
-                                            return;
-                                        }
-                                        let mut last_line_end = lines.first().unwrap().last().unwrap().clone();
-                                        let mut color_index = 0;
-                                        for points in lines.into_iter() {
-                                            let mut points = points;
-                                            if self.params.lcd_coords {
-                                                points = points.into_iter().map(|v| v.matrix(self.params.trans_matrix)).collect::<Vec<VecLineData>>();
-                                            }
-                                            let curr_line_start = points.first().unwrap().clone();
-                                            if last_line_end != curr_line_start && self.params.show_inter_dash {
-                                                let drawn_lines = Line::new(vec![last_line_end.pos(), curr_line_start.pos()])
-                                                    .style(LineStyle::dashed_dense());
-                                                plot_ui.line(if has_error {
-                                                    drawn_lines.stroke(Stroke::new(2.0, egui::Color32::LIGHT_RED))
-                                                } else {
-                                                    drawn_lines.stroke(Stroke::new(1.0, egui::Color32::LIGHT_GREEN))
-                                                });
-                                            }
-                                            last_line_end = points.last().unwrap().clone();
-                                            let points: Vec<[f64; 2]> = points.into_iter().map(|v| v.pos()).collect();
-                                            let drawn_lines = Line::new(points);
-                                            plot_ui.line(if has_error {
-                                                drawn_lines.color(egui::Color32::DARK_RED).width(5.0)
-                                            } else {
-                                                drawn_lines.color(COLOR_PALETTE[color_index]).width(2.0)
-                                            });
+                                                let parsed = vlg.gen(0..(self.params.vis_progress));
 
-                                            if self.params.colorful_block {
-                                                color_index = (color_index + 1) % COLOR_PALETTE.len();
+                                                self.cache.lines = parsed.clone();
+                                                self.cache.code = self.code.clone();
+                                                self.cache.params = self.params.clone();
+                                                false
+                                            }
+                                            Err(e) => {
+                                                error!("Error: {:?}", e);
+                                                self.error = Some(e);
+                                                true
                                             }
                                         }
-                                    });
+                                    }
+                                    if !has_error {
+                                        self.error = None;
+                                    }
+
+                                    visualizer.plot(ui, self.cache.lines.clone(),
+                                                    has_error, self.params.show_inter_dash, self.params.colorful_block);
                                 });
                                 strip.strip(|builder| {
                                     builder
