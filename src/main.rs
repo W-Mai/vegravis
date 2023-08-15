@@ -117,14 +117,21 @@ impl eframe::App for MainApp {
                             .size(Size::relative(0.5))
                             .horizontal(|mut strip| {
                                 strip.cell(|ui| {
+                                    if self.params.lcd_coords {
+                                        self.params.trans_matrix[1][1] = -1.0;
+                                    }
+                                    let (a, b,
+                                        c, d) = (
+                                        self.params.trans_matrix[0][0], self.params.trans_matrix[1][1],
+                                        self.params.trans_matrix[0][2], self.params.trans_matrix[1][2]);
                                     let plot = Plot::new("plot").data_aspect(1.0)
+                                        .x_axis_formatter(
+                                            move |x: f64, _range: &RangeInclusive<f64>| format!("{:.0}", a * x + c)
+                                        )
                                         .y_axis_formatter(
-                                            if self.params.lcd_coords {
-                                                |y: f64, _range: &RangeInclusive<f64>| format!("{:.0}", -y)
-                                            } else {
-                                                |y: f64, _range: &RangeInclusive<f64>| format!("{:.0}", y)
-                                            }
+                                            move |y: f64, _range: &RangeInclusive<f64>| format!("{:.0}", b * y + d)
                                         );
+
                                     let mut has_error = false;
                                     plot.show(ui, |plot_ui| {
                                         if self.code != self.cache.code || self.params != self.cache.params {
@@ -165,7 +172,6 @@ impl eframe::App for MainApp {
                                         for points in lines.into_iter() {
                                             let mut points = points;
                                             if self.params.lcd_coords {
-                                                self.params.trans_matrix[1][1] = -1.0;
                                                 points = points.into_iter().map(|v| v.matrix(self.params.trans_matrix)).collect::<Vec<VecLineData>>();
                                             }
                                             let curr_line_start = points.first().unwrap().clone();
