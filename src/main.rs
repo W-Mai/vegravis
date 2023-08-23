@@ -8,11 +8,10 @@ mod interfaces;
 use std::vec;
 use log::error;
 use eframe::{egui};
-use egui_code_editor::{CodeEditor, ColorTheme};
 use egui_extras::{Size, StripBuilder};
 use crate::common_vec_op::{CodeParser, CommonVecVisualizer, TextDataSrc, VecLineData, VecLineGen};
-use crate::interfaces::{ICommandSyntax, IDataSource, IParser, IVisDataGenerator, IVisualizer, ParseError};
-use crate::cus_component::toggle;
+use crate::interfaces::{ICodeEditor, IDataSource, IParser, IVisDataGenerator, IVisualizer, ParseError};
+use crate::cus_component::{CodeEditor, toggle};
 use crate::syntax::{CommonVecOpSyntax};
 
 const DEFAULT_CODE: &str = include_str!("default_code");
@@ -47,7 +46,7 @@ fn main() -> Result<(), eframe::Error> {
 }
 
 struct MainAppCache {
-    code: String,
+    code: TextDataSrc,
     lines: Vec<Vec<VecLineData>>,
 
     params: MainAppParams,
@@ -66,7 +65,7 @@ struct MainAppParams {
 }
 
 struct MainApp {
-    code: String,
+    code: TextDataSrc,
     error: Option<ParseError>,
 
     params: MainAppParams,
@@ -77,10 +76,10 @@ struct MainApp {
 impl Default for MainApp {
     fn default() -> Self {
         Self {
-            code: DEFAULT_CODE.to_owned(),
+            code: TextDataSrc::new(DEFAULT_CODE.to_owned()),
             params: MainAppParams::default(),
             cache: MainAppCache {
-                code: "".to_owned(),
+                code: TextDataSrc::new("".to_owned()),
                 lines: vec![],
                 params: MainAppParams::default(),
             },
@@ -121,7 +120,7 @@ impl eframe::App for MainApp {
 
                                     let mut has_error = false;
                                     if self.code != self.cache.code || self.params != self.cache.params {
-                                        let mut parser = CodeParser::new(TextDataSrc::new(self.code.clone()), VecLineGen::default());
+                                        let mut parser = CodeParser::new(self.code.clone(), VecLineGen::default());
 
                                         has_error = match parser.parse() {
                                             Ok(vlg) => {
@@ -181,14 +180,7 @@ impl eframe::App for MainApp {
                                                 });
                                             });
                                             strip.cell(|ui| {
-                                                CodeEditor::default()
-                                                    .id_source("code editor")
-                                                    .with_rows(12)
-                                                    .with_fontsize(14.0)
-                                                    .with_theme(ColorTheme::SONOKAI)
-                                                    .with_syntax(CommonVecOpSyntax {}.syntax())
-                                                    .with_numlines(true)
-                                                    .show(ui, &mut self.code);
+                                                CodeEditor {}.show(ui, &mut self.code, CommonVecOpSyntax {});
                                             });
                                         });
                                 })

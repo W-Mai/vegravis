@@ -1,3 +1,4 @@
+use std::cell::RefMut;
 use std::collections::HashSet;
 use std::ops::Range;
 use eframe::egui;
@@ -94,9 +95,11 @@ pub trait ICommandSyntax {
     }
 }
 
-pub trait IDataSource<ST> {
+pub trait IDataSource<ST>: PartialEq {
     fn new(code: ST) -> Self;
     fn get(&self, name: &str) -> Option<ST>;
+
+    fn get_ref(&self, name: &str) -> Option<RefMut<ST>>;
 }
 
 pub trait IParser<PT: Numeric, ST, CT: Numeric, VDT: IVisData<PT>, DST: IDataSource<ST>, G: IVisDataGenerator<CT, PT, VDT>> {
