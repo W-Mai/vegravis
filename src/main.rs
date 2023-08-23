@@ -113,43 +113,7 @@ impl eframe::App for MainApp {
                             .size(Size::relative(0.5))
                             .horizontal(|mut strip| {
                                 strip.cell(|ui| {
-                                    if self.params.lcd_coords {
-                                        self.params.trans_matrix[1][1] = -1.0;
-                                    }
-                                    let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
-
-                                    let mut has_error = false;
-                                    if self.code != self.cache.code || self.params != self.cache.params {
-                                        let mut parser = CodeParser::new(self.code.clone(), VecLineGen::default());
-
-                                        has_error = match parser.parse() {
-                                            Ok(vlg) => {
-                                                let ops_count = vlg.len() as i64;
-                                                self.params.vis_progress_max = ops_count;
-                                                if self.code != self.cache.code {
-                                                    self.params.vis_progress = ops_count;
-                                                }
-
-                                                let parsed = vlg.gen(0..(self.params.vis_progress));
-
-                                                self.cache.lines = parsed.clone();
-                                                self.cache.code = self.code.clone();
-                                                self.cache.params = self.params.clone();
-                                                false
-                                            }
-                                            Err(e) => {
-                                                error!("Error: {:?}", e);
-                                                self.error = Some(e);
-                                                true
-                                            }
-                                        }
-                                    }
-                                    if !has_error {
-                                        self.error = None;
-                                    }
-
-                                    visualizer.plot(ui, self.cache.lines.clone(),
-                                                    has_error, self.params.show_inter_dash, self.params.colorful_block);
+                                    self.ui_visualizer(ui);
                                 });
                                 strip.strip(|builder| {
                                     builder
@@ -158,21 +122,7 @@ impl eframe::App for MainApp {
                                         .size(Size::remainder())
                                         .vertical(|mut strip| {
                                             strip.cell(|ui| {
-                                                egui::ScrollArea::vertical().show(ui, |ui| {
-                                                    ui.vertical_centered(|ui| {
-                                                        ui.heading("Controls");
-                                                    });
-                                                    ui.horizontal_wrapped(|ui| {
-                                                        ui.add(toggle("LCD Coordinates", &mut self.params.lcd_coords));
-                                                        ui.add(toggle("Show Intermediate Dash", &mut self.params.show_inter_dash));
-                                                        ui.add(toggle("Colorful Blocks", &mut self.params.colorful_block));
-                                                        ui.add_sized(ui.available_size(),
-                                                                     egui::Slider::new(&mut self.params.vis_progress, 0..=self.params.vis_progress_max)
-                                                                         .text("Progress")
-                                                                         .show_value(true),
-                                                        );
-                                                    });
-                                                });
+                                                self.ui_options_panel(ui);
                                             });
                                             strip.cell(|ui| {
                                                 ui.vertical_centered(|ui| {
@@ -180,24 +130,97 @@ impl eframe::App for MainApp {
                                                 });
                                             });
                                             strip.cell(|ui| {
-                                                CodeEditor {}.show(ui, &mut self.code, CommonVecOpSyntax {});
+                                                self.ui_code_editor(ui);
                                             });
                                         });
                                 })
                             });
                     });
                     strip.cell(|ui| {
-                        ui.vertical_centered(|ui| {
-                            ui.horizontal(|ui| {
-                                let info = self.error.as_ref().map_or_else(|| "".to_owned(), |e| {
-                                    format!("({}, {}): Error: {}", e.cursor.row + 1, e.cursor.col, e.msg)
-                                });
-                                let rt = egui::RichText::new(info).size(20.0).color(egui::Color32::RED).text_style(egui::TextStyle::Monospace);
-                                ui.label(rt).highlight();
-                            });
-                        });
+                        self.ui_toast_bar(ui);
                     });
                 });
         });
+    }
+}
+
+impl MainApp {
+    fn ui_toast_bar(&mut self, ui: &mut egui::Ui) {
+        ui.vertical_centered(|ui| {
+            ui.horizontal(|ui| {
+                let info = self.error.as_ref().map_or_else(|| "".to_owned(), |e| {
+                    format!("({}, {}): Error: {}", e.cursor.row + 1, e.cursor.col, e.msg)
+                });
+                let rt = egui::RichText::new(info).size(20.0).color(egui::Color32::RED).text_style(egui::TextStyle::Monospace);
+                ui.label(rt).highlight();
+            });
+        });
+    }
+
+    fn ui_options_panel(&mut self, ui: &mut egui::Ui) {
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.heading("Controls");
+            });
+            ui.horizontal_wrapped(|ui| {
+                ui.add(toggle("LCD Coordinates", &mut self.params.lcd_coords));
+                ui.add(toggle("Show Intermediate Dash", &mut self.params.show_inter_dash));
+                ui.add(toggle("Colorful Blocks", &mut self.params.colorful_block));
+                ui.add_sized(ui.available_size(),
+                             egui::Slider::new(&mut self.params.vis_progress, 0..=self.params.vis_progress_max)
+                                 .text("Progress")
+                                 .show_value(true),
+                );
+            });
+        });
+    }
+
+    fn ui_code_editor(&mut self, ui: &mut egui::Ui) {
+        CodeEditor {}.show(ui, &mut self.code, CommonVecOpSyntax {});
+    }
+
+    fn ui_visualizer(&mut self, ui: &mut egui::Ui) {
+        if self.params.lcd_coords {
+            self.params.trans_matrix[1][1] = -1.0;
+        }
+        let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
+
+        let mut has_error = false;
+        if self.code != self.cache.code || self.params != self.cache.params {
+            let mut parser = CodeParser::new(self.code.clone(), VecLineGen::default());
+
+            has_error = match parser.parse() {
+                Ok(vlg) => {
+                    let ops_count = vlg.len() as i64;
+                    self.params.vis_progress_max = ops_count;
+                    if self.code != self.cache.code {
+                        self.params.vis_progress = ops_count;
+                    }
+
+                    let parsed = vlg.gen(0..(self.params.vis_progress));
+
+                    self.cache.lines = parsed.clone();
+                    self.cache.code = self.code.clone();
+                    self.cache.params = self.params.clone();
+                    false
+                }
+                Err(e) => {
+                    error!("Error: {:?}", e);
+                    self.error = Some(e);
+                    true
+                }
+            }
+        }
+        if !has_error {
+            self.error = None;
+        }
+
+        visualizer.plot(
+            ui,
+            self.cache.lines.clone(),
+            has_error,
+            self.params.show_inter_dash,
+            self.params.colorful_block,
+        );
     }
 }
