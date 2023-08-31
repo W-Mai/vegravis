@@ -95,14 +95,16 @@ pub trait ICommandSyntax {
     }
 }
 
-pub trait IDataSource<ST>: PartialEq {
-    fn new(code: ST) -> Self;
-    fn get(&self, name: &str) -> Option<ST>;
+pub trait IDataSource: PartialEq {
+    type ST;
 
-    fn get_ref(&self, name: &str) -> Option<RefMut<ST>>;
+    fn new(code: Self::ST) -> Self;
+    fn get(&self, name: &str) -> Option<Self::ST>;
+
+    fn get_ref(&self, name: &str) -> Option<RefMut<Self::ST>>;
 }
 
-pub trait IParser<PT: Numeric, ST, CT: Numeric, VDT: IVisData<PT>, DST: IDataSource<ST>, G: IVisDataGenerator<CT, PT, VDT>> {
+pub trait IParser<VDT: IVisData, DST: IDataSource, G: IVisDataGenerator<VDT>> {
     fn new(code: DST, gen: G) -> Self;
 
     fn parse(&mut self) -> Result<&G, ParseError>;
@@ -112,29 +114,33 @@ pub trait IEncoder {
     fn encode(&self, input: &str) -> String;
 }
 
-pub trait IVisDataGenerator<CT: Numeric, PT: Numeric, VDT: IVisData<PT>> {
-    fn add(&mut self, op: Command<CT>);
+pub trait IVisDataGenerator<VDT: IVisData> {
+    type CT;
+
+    fn add(&mut self, op: Command<Self::CT>);
 
     fn gen(&self, range: Range<i64>) -> Vec<Vec<VDT>>;
 
     fn len(&self) -> usize;
 }
 
-pub trait IVisData<PT: Numeric> {
-    fn new(x: PT, y: PT) -> Self;
+pub trait IVisData {
+    type PT: Numeric;
 
-    fn pos(&self) -> [PT; 2];
+    fn new(x: Self::PT, y: Self::PT) -> Self;
 
-    fn matrix(&self, matrix: [[PT; 3]; 3]) -> Self;
+    fn pos(&self) -> [Self::PT; 2];
+
+    fn matrix(&self, matrix: [[Self::PT; 3]; 3]) -> Self;
 }
 
-pub trait IVisualizer<PT: Numeric, VDT: IVisData<PT>> {
+pub trait IVisualizer<VDT: IVisData> {
     fn new(transform: [[f64; 3]; 3]) -> Self;
     fn plot(&self, ui: &mut Ui, input: Vec<Vec<VDT>>, has_error: bool, show_inter_dash: bool, colorful_block: bool);
 
     fn transform(&mut self, matrix: [[f64; 3]; 3]);
 }
 
-pub trait ICodeEditor<ST, DST: IDataSource<ST>, CST: ICommandSyntax> {
+pub trait ICodeEditor<DST: IDataSource, CST: ICommandSyntax> {
     fn show(&self, ui: &mut egui::Ui, code: &mut DST, format: CST) -> egui::Response;
 }

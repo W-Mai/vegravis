@@ -15,16 +15,18 @@ impl Clone for TextDataSrc {
     }
 }
 
-impl IDataSource<String> for TextDataSrc {
-    fn new(code: String) -> Self {
+impl IDataSource for TextDataSrc {
+    type ST = String;
+
+    fn new(code: Self::ST) -> Self {
         Self { data: Rc::new(RefCell::new(code)) }
     }
 
-    fn get(&self, _name: &str) -> Option<String> {
+    fn get(&self, _name: &str) -> Option<Self::ST> {
         Some(self.data.borrow().clone())
     }
 
-    fn get_ref(&self, _name: &str) -> Option<RefMut<String>> {
+    fn get_ref(&self, _name: &str) -> Option<RefMut<Self::ST>> {
         Some(self.data.borrow_mut())
     }
 }

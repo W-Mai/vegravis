@@ -10,7 +10,7 @@ pub struct CommonVecVisualizer {
     t: [[f64; 3]; 3],
 }
 
-impl IVisualizer<f64, VecLineData> for CommonVecVisualizer {
+impl IVisualizer<VecLineData> for CommonVecVisualizer {
     fn new(transform: [[f64; 3]; 3]) -> Self {
         Self {
             t: transform,

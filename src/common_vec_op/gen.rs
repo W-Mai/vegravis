@@ -8,19 +8,21 @@ pub struct VecLineData {
     y: f64,
 }
 
-impl IVisData<f64> for VecLineData {
-    fn new(x: f64, y: f64) -> Self {
+impl IVisData for VecLineData {
+    type PT = f64;
+
+    fn new(x: Self::PT, y: Self::PT) -> Self {
         VecLineData {
             x,
             y,
         }
     }
 
-    fn pos(&self) -> [f64; 2] {
+    fn pos(&self) -> [Self::PT; 2] {
         [self.x, self.y]
     }
 
-    fn matrix(&self, matrix: [[f64; 3]; 3]) -> Self {
+    fn matrix(&self, matrix: [[Self::PT; 3]; 3]) -> Self {
         fn mul_point(matrix: [[f64; 3]; 3], point: [f64; 3]) -> [f64; 3] {
             let [
             a, b, c,
@@ -54,8 +56,10 @@ impl VecLineGen {
     }
 }
 
-impl IVisDataGenerator<f64, f64, VecLineData> for VecLineGen {
-    fn add(&mut self, op: Command<f64>) {
+impl IVisDataGenerator<VecLineData> for VecLineGen {
+    type CT = f64;
+
+    fn add(&mut self, op: Command<Self::CT>) {
         self.ops.push(op);
     }
 

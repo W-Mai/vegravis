@@ -54,7 +54,7 @@ struct Token {
 
 type ReadResult = Result<Token, ParseError>;
 
-impl IParser<f64, String, f64, VecLineData, TextDataSrc, VecLineGen> for CodeParser {
+impl IParser<VecLineData, TextDataSrc, VecLineGen> for CodeParser {
     fn new(code: TextDataSrc, gen: VecLineGen) -> Self {
         match code.get("") {
             None => { Self { code: "".to_owned(), cursor: Cursor::default(), gen } }
