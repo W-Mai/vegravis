@@ -8,8 +8,11 @@ use crate::interfaces::ICommandSyntax;
 
 pub struct CodeEditor {}
 
-impl ICodeEditor<TextDataSrc, CommonVecOpSyntax> for CodeEditor {
-    fn show(&self, ui: &mut Ui, code: &mut TextDataSrc, format: CommonVecOpSyntax) -> Response {
+impl ICodeEditor for CodeEditor {
+    type DST = TextDataSrc;
+    type CST = CommonVecOpSyntax;
+
+    fn show(&self, ui: &mut Ui, code: &mut Self::DST, format: Self::CST) -> Response {
         ECodeEditor::default()
             .id_source("code editor")
             .with_rows(12)

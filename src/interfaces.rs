@@ -2,7 +2,6 @@ use std::cell::RefMut;
 use std::collections::HashSet;
 use std::ops::Range;
 use eframe::egui;
-use eframe::egui::Ui;
 use eframe::emath::Numeric;
 use egui_code_editor::Syntax;
 use levenshtein::levenshtein;
@@ -104,22 +103,26 @@ pub trait IDataSource: PartialEq {
     fn get_ref(&self, name: &str) -> Option<RefMut<Self::ST>>;
 }
 
-pub trait IParser<VDT: IVisData, DST: IDataSource, G: IVisDataGenerator<VDT>> {
-    fn new(code: DST, gen: G) -> Self;
+pub trait IParser {
+    type DST: IDataSource;
+    type G: IVisDataGenerator;
 
-    fn parse(&mut self) -> Result<&G, ParseError>;
+    fn new(code: Self::DST, gen: Self::G) -> Self;
+
+    fn parse(&mut self) -> Result<&Self::G, ParseError>;
 }
 
 pub trait IEncoder {
     fn encode(&self, input: &str) -> String;
 }
 
-pub trait IVisDataGenerator<VDT: IVisData> {
+pub trait IVisDataGenerator {
     type CT;
+    type VDT: IVisData;
 
     fn add(&mut self, op: Command<Self::CT>);
 
-    fn gen(&self, range: Range<i64>) -> Vec<Vec<VDT>>;
+    fn gen(&self, range: Range<i64>) -> Vec<Vec<Self::VDT>>;
 
     fn len(&self) -> usize;
 }
@@ -134,13 +137,18 @@ pub trait IVisData {
     fn matrix(&self, matrix: [[Self::PT; 3]; 3]) -> Self;
 }
 
-pub trait IVisualizer<VDT: IVisData> {
+pub trait IVisualizer {
+    type VDT: IVisData;
+
     fn new(transform: [[f64; 3]; 3]) -> Self;
-    fn plot(&self, ui: &mut Ui, input: Vec<Vec<VDT>>, has_error: bool, show_inter_dash: bool, colorful_block: bool);
+    fn plot(&self, ui: &mut egui::Ui, input: Vec<Vec<Self::VDT>>, has_error: bool, show_inter_dash: bool, colorful_block: bool);
 
     fn transform(&mut self, matrix: [[f64; 3]; 3]);
 }
 
-pub trait ICodeEditor<DST: IDataSource, CST: ICommandSyntax> {
-    fn show(&self, ui: &mut egui::Ui, code: &mut DST, format: CST) -> egui::Response;
+pub trait ICodeEditor {
+    type DST: IDataSource;
+    type CST: ICommandSyntax;
+
+    fn show(&self, ui: &mut egui::Ui, code: &mut Self::DST, format: Self::CST) -> egui::Response;
 }

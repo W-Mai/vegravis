@@ -10,14 +10,16 @@ pub struct CommonVecVisualizer {
     t: [[f64; 3]; 3],
 }
 
-impl IVisualizer<VecLineData> for CommonVecVisualizer {
+impl IVisualizer for CommonVecVisualizer {
+    type VDT = VecLineData;
+
     fn new(transform: [[f64; 3]; 3]) -> Self {
         Self {
             t: transform,
         }
     }
 
-    fn plot(&self, ui: &mut Ui, input: Vec<Vec<VecLineData>>, has_error: bool, show_inter_dash: bool, colorful_block: bool) {
+    fn plot(&self, ui: &mut Ui, input: Vec<Vec<Self::VDT>>, has_error: bool, show_inter_dash: bool, colorful_block: bool) {
         let (a, b,
             c, d) = (
             self.t[0][0], self.t[1][1],

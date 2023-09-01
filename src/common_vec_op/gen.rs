@@ -56,14 +56,15 @@ impl VecLineGen {
     }
 }
 
-impl IVisDataGenerator<VecLineData> for VecLineGen {
+impl IVisDataGenerator for VecLineGen {
     type CT = f64;
+    type VDT = VecLineData;
 
     fn add(&mut self, op: Command<Self::CT>) {
         self.ops.push(op);
     }
 
-    fn gen(&self, range: Range<i64>) -> Vec<Vec<VecLineData>> {
+    fn gen(&self, range: Range<i64>) -> Vec<Vec<Self::VDT>> {
         let mut cursor = PlotPoint::new(0.0, 0.0);
         let mut points_total = Vec::new();
         let mut points = Vec::new();

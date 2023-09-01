@@ -1,6 +1,5 @@
 use crate::common_vec_op::data_src::TextDataSrc;
 use crate::common_vec_op::gen::VecLineGen;
-use crate::common_vec_op::VecLineData;
 use crate::interfaces::{Cursor, ICommandSyntax, IDataSource, IParser, IVisDataGenerator, ParseError};
 use crate::syntax::CommonVecOpSyntax;
 
@@ -54,7 +53,10 @@ struct Token {
 
 type ReadResult = Result<Token, ParseError>;
 
-impl IParser<VecLineData, TextDataSrc, VecLineGen> for CodeParser {
+impl IParser for CodeParser {
+    type DST = TextDataSrc;
+    type G = VecLineGen;
+
     fn new(code: TextDataSrc, gen: VecLineGen) -> Self {
         match code.get("") {
             None => { Self { code: "".to_owned(), cursor: Cursor::default(), gen } }
