@@ -1,5 +1,5 @@
 use std::ops::{Range};
-use eframe::egui::plot::{PlotPoint};
+use egui_plot::PlotPoint;
 use crate::interfaces::{Command, IVisData, IVisDataGenerator};
 
 #[derive(Debug, Copy, Clone, PartialEq)]

@@ -176,7 +176,7 @@ impl MainApp {
     }
 
     fn ui_code_editor(&mut self, ui: &mut egui::Ui) {
-        CodeEditor {}.show(ui, &mut self.code, CommonVecOpSyntax {});
+        CodeEditor {}.show(ui, &mut self.code, &CommonVecOpSyntax {});
     }
 
     fn ui_visualizer(&mut self, ui: &mut egui::Ui) {

@@ -148,7 +148,6 @@ pub trait IVisualizer {
 
 pub trait ICodeEditor {
     type DST: IDataSource;
-    type CST: ICommandSyntax;
 
-    fn show(&self, ui: &mut egui::Ui, code: &mut Self::DST, format: Self::CST) -> egui::Response;
+    fn show(&self, ui: &mut egui::Ui, code: &mut Self::DST, format: &dyn ICommandSyntax) -> egui::Response;
 }

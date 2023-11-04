@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
+use egui_plot::{Line, LineStyle, Plot};
 use eframe::egui;
-use eframe::egui::plot::{Line, LineStyle, Plot};
 use eframe::egui::{Stroke, Ui};
 use crate::COLOR_PALETTE;
 use crate::common_vec_op::VecLineData;
@@ -27,10 +27,10 @@ impl IVisualizer for CommonVecVisualizer {
 
         let plot = Plot::new("plot").data_aspect(1.0)
             .x_axis_formatter(
-                move |x: f64, _range: &RangeInclusive<f64>| format!("{:.0}", a * x + c)
+                move |x: f64, _ticks: usize, _range: &RangeInclusive<f64>| format!("{:.0}", a * x + c)
             )
             .y_axis_formatter(
-                move |y: f64, _range: &RangeInclusive<f64>| format!("{:.0}", b * y + d)
+                move |y: f64, _ticks: usize, _range: &RangeInclusive<f64>| format!("{:.0}", b * y + d)
             );
         plot.show(ui, |plot_ui| {
             let lines = input;
