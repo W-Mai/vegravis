@@ -14,11 +14,11 @@ fn toggle_ui(ui: &mut egui::Ui, label: impl Into<RichText>, on: &mut bool) -> eg
     }
     let text = label.into();
     let text = text.text();
-    response.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Checkbox, *on, text.clone()));
+    response.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Checkbox, *on, text));
 
     if ui.is_rect_visible(rect) {
         ui.horizontal(|ui| {
-            ui.label(text.clone());
+            ui.label(text);
             let how_on = ui.ctx().animate_bool(response.id, *on);
             let visuals = ui.style().interact_selectable(&response, *on);
             let rect = rect.expand(visuals.expansion);
