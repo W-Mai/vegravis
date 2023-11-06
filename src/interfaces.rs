@@ -133,6 +133,10 @@ pub trait IVisData {
 
     fn pos(&self) -> [AnyData; 2];
 
+    fn data(&self) -> AnyData {
+        AnyData::new(())
+    }
+
     fn matrix(&self, matrix: [[f64; 3]; 3]) -> Self;
 }
 
