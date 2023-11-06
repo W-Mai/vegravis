@@ -1,5 +1,6 @@
 use std::ops::{Range};
 use egui_plot::PlotPoint;
+use crate::any_data::AnyData;
 use crate::interfaces::{Command, IVisData, IVisDataGenerator};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -8,21 +9,28 @@ pub struct VecLineData {
     y: f64,
 }
 
-impl IVisData for VecLineData {
-    type PT = f64;
-
-    fn new(x: Self::PT, y: Self::PT) -> Self {
-        VecLineData {
+impl VecLineData {
+    fn new(x: f64, y: f64) -> Self {
+        Self {
             x,
             y,
         }
     }
+}
 
-    fn pos(&self) -> [Self::PT; 2] {
-        [self.x, self.y]
+impl IVisData for VecLineData {
+    fn new(x: AnyData, y: AnyData, _data: AnyData) -> Self {
+        VecLineData {
+            x: x.cast(),
+            y: y.cast(),
+        }
     }
 
-    fn matrix(&self, matrix: [[Self::PT; 3]; 3]) -> Self {
+    fn pos(&self) -> [AnyData; 2] {
+        [AnyData::new(self.x), AnyData::new(self.y)]
+    }
+
+    fn matrix(&self, matrix: [[f64; 3]; 3]) -> Self {
         fn mul_point(matrix: [[f64; 3]; 3], point: [f64; 3]) -> [f64; 3] {
             let [
             a, b, c,

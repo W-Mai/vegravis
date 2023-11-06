@@ -44,7 +44,9 @@ impl IVisualizer for CommonVecVisualizer {
                 points = points.into_iter().map(|v| v.matrix(self.t)).collect::<Vec<VecLineData>>();
                 let curr_line_start = points.first().unwrap().clone();
                 if last_line_end != curr_line_start && show_inter_dash {
-                    let drawn_lines = Line::new(vec![last_line_end.pos(), curr_line_start.pos()])
+                    let last_line_end_pos: [f64; 2] = [*last_line_end.pos()[0].cast_ref(), *last_line_end.pos()[1].cast_ref()];
+                    let curr_line_start_pos: [f64; 2] = [*curr_line_start.pos()[0].cast_ref(), *curr_line_start.pos()[1].cast_ref()];
+                    let drawn_lines = Line::new(vec![last_line_end_pos, curr_line_start_pos])
                         .style(LineStyle::dashed_dense());
                     plot_ui.line(if has_error {
                         drawn_lines.stroke(Stroke::new(2.0, egui::Color32::LIGHT_RED))
@@ -53,7 +55,11 @@ impl IVisualizer for CommonVecVisualizer {
                     });
                 }
                 last_line_end = points.last().unwrap().clone();
-                let points: Vec<[f64; 2]> = points.into_iter().map(|v| v.pos()).collect();
+                let points: Vec<[f64; 2]> = points.into_iter().map(
+                    |v| {
+                        [*v.pos()[0].cast_ref(), *v.pos()[1].cast_ref()]
+                    }
+                ).collect();
                 let drawn_lines = Line::new(points);
                 plot_ui.line(if has_error {
                     drawn_lines.color(egui::Color32::DARK_RED).width(5.0)

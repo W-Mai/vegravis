@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use std::ops::Range;
 use std::rc::Rc;
 use eframe::egui;
-use eframe::emath::Numeric;
 use egui_code_editor::Syntax;
 use levenshtein::levenshtein;
 use crate::any_data::AnyData;
@@ -130,13 +129,11 @@ pub trait IVisDataGenerator {
 }
 
 pub trait IVisData {
-    type PT: Numeric;
+    fn new(x: AnyData, y: AnyData, data: AnyData) -> Self;
 
-    fn new(x: Self::PT, y: Self::PT) -> Self;
+    fn pos(&self) -> [AnyData; 2];
 
-    fn pos(&self) -> [Self::PT; 2];
-
-    fn matrix(&self, matrix: [[Self::PT; 3]; 3]) -> Self;
+    fn matrix(&self, matrix: [[f64; 3]; 3]) -> Self;
 }
 
 pub trait IVisualizer {
