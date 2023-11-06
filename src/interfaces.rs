@@ -1,10 +1,12 @@
 use std::cell::RefMut;
 use std::collections::HashSet;
 use std::ops::Range;
+use std::rc::Rc;
 use eframe::egui;
 use eframe::emath::Numeric;
 use egui_code_editor::Syntax;
 use levenshtein::levenshtein;
+use crate::any_data::AnyData;
 
 #[derive(Debug, Clone)]
 pub struct CommandDescription {
@@ -13,20 +15,20 @@ pub struct CommandDescription {
 }
 
 impl CommandDescription {
-    pub fn pack<T: Numeric>(&'static self, argv: Vec<T>) -> Command<T> {
+    pub fn pack(&'static self, argv: Vec<AnyData>) -> Command {
         assert_eq!(argv.len(), self.argc);
 
         Command {
             dsc: self,
-            argv,
+            argv: Rc::new(argv),
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct Command<T> {
+pub struct Command {
     pub dsc: &'static CommandDescription,
-    pub argv: Vec<T>,
+    pub argv: Rc<Vec<AnyData>>,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -120,7 +122,7 @@ pub trait IVisDataGenerator {
     type CT;
     type VDT: IVisData;
 
-    fn add(&mut self, op: Command<Self::CT>);
+    fn add(&mut self, op: Command);
 
     fn gen(&self, range: Range<i64>) -> Vec<Vec<Self::VDT>>;
 

@@ -47,11 +47,11 @@ impl IVisData for VecLineData {
 
 #[derive(Debug, Clone)]
 pub struct VecLineGen {
-    ops: Vec<Command<f64>>,
+    ops: Vec<Command>,
 }
 
 impl VecLineGen {
-    pub fn new(ops: Vec<Command<f64>>) -> Self {
+    pub fn new(ops: Vec<Command>) -> Self {
         Self { ops }
     }
 }
@@ -60,7 +60,7 @@ impl IVisDataGenerator for VecLineGen {
     type CT = f64;
     type VDT = VecLineData;
 
-    fn add(&mut self, op: Command<Self::CT>) {
+    fn add(&mut self, op: Command) {
         self.ops.push(op);
     }
 
@@ -76,21 +76,21 @@ impl IVisDataGenerator for VecLineGen {
             }
             match op.dsc.name {
                 "MOVE" => {
-                    cursor = PlotPoint::from([op.argv[0], op.argv[1]]);
+                    cursor = PlotPoint::from([*op.argv[0].cast_ref(), *op.argv[1].cast_ref()]);
                     if points_total.len() == 0 {
                         points.push(VecLineData::new(0.0, 0.0));
                     }
                     points_total.push(points);
                     points = Vec::new();
-                    points.push(VecLineData::new(op.argv[0], op.argv[1]));
+                    points.push(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref()));
                 }
                 "LINE" => {
-                    points.push(VecLineData::new(op.argv[0], op.argv[1]));
-                    points.push(VecLineData::new(op.argv[0], op.argv[1]));
-                    cursor = PlotPoint::from([op.argv[0], op.argv[1]]);
+                    points.push(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref()));
+                    points.push(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref()));
+                    cursor = PlotPoint::from([*op.argv[0].cast_ref(), *op.argv[1].cast_ref()]);
                 }
                 "QUAD" => {
-                    let [x1, y1, x2, y2] = [op.argv[0], op.argv[1], op.argv[2], op.argv[3]];
+                    let [x1, y1, x2, y2] = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref(), *op.argv[2].cast_ref(), *op.argv[3].cast_ref()];
                     let mut t = 0.0;
                     while t < 1.0 {
                         let x = (1.0f64 - t).powi(2) * cursor.x + 2.0 * (1.0 - t) * t * x1 + t.powi(2) * x2;
@@ -101,7 +101,7 @@ impl IVisDataGenerator for VecLineGen {
                     cursor = PlotPoint::from([x2, y2]);
                 }
                 "CUBI" => {
-                    let [x1, y1, x2, y2, x3, y3] = [op.argv[0], op.argv[1], op.argv[2], op.argv[3], op.argv[4], op.argv[5]];
+                    let [x1, y1, x2, y2, x3, y3] = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref(), *op.argv[2].cast_ref(), *op.argv[3].cast_ref(), *op.argv[4].cast_ref(), *op.argv[5].cast_ref()];
                     let mut t = 0.0;
                     while t < 1.0 {
                         let x = (1.0f64 - t).powi(3) * cursor.x + 3.0 * (1.0 - t).powi(2) * t * x1 + 3.0 * (1.0 - t) * t.powi(2) * x2 + t.powi(3) * x3;

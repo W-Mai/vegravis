@@ -1,3 +1,4 @@
+use crate::any_data::AnyData;
 use crate::common_vec_op::data_src::TextDataSrc;
 use crate::common_vec_op::gen::VecLineGen;
 use crate::interfaces::{Cursor, ICommandSyntax, IDataSource, IParser, IVisDataGenerator, ParseError};
@@ -267,7 +268,7 @@ impl CodeParser {
         match cmd {
             Ok(dsc) => {
                 let params = self.read_n_params(dsc.argc)?;
-                return Ok(self.gen.add(dsc.pack(params)));
+                return Ok(self.gen.add(dsc.pack(AnyData::convert_vec(params))));
             }
             Err(maybe_cmd) => {
                 if ident_string.len() == 0 {
