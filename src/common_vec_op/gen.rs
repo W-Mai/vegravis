@@ -19,18 +19,16 @@ impl VecLineData {
 }
 
 impl IVisData for VecLineData {
-    fn new(x: AnyData, y: AnyData, _data: AnyData) -> Self {
-        VecLineData {
-            x: x.cast(),
-            y: y.cast(),
-        }
-    }
-
     fn pos(&self) -> [AnyData; 2] {
         [AnyData::new(self.x), AnyData::new(self.y)]
     }
 
-    fn matrix(&self, matrix: [[f64; 3]; 3]) -> Self {
+    fn is_same(&self, another_data: &dyn IVisData) -> bool {
+        let another_pos = another_data.pos();
+        self.x == *another_pos[0].cast_ref() && self.y == *another_pos[1].cast_ref()
+    }
+
+    fn matrix(&self, matrix: [[f64; 3]; 3]) -> AnyData {
         fn mul_point(matrix: [[f64; 3]; 3], point: [f64; 3]) -> [f64; 3] {
             let [
             a, b, c,
@@ -49,7 +47,7 @@ impl IVisData for VecLineData {
             ]
         }
         let [x, y, _] = mul_point(matrix, [self.x, self.y, 1.0]);
-        VecLineData::new(x, y)
+        AnyData::new(VecLineData::new(x, y))
     }
 }
 
@@ -65,17 +63,14 @@ impl VecLineGen {
 }
 
 impl IVisDataGenerator for VecLineGen {
-    type CT = f64;
-    type VDT = VecLineData;
-
     fn add(&mut self, op: Command) {
         self.ops.push(op);
     }
 
-    fn gen(&self, range: Range<i64>) -> Vec<Vec<Self::VDT>> {
+    fn gen(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>> {
         let mut cursor = PlotPoint::new(0.0, 0.0);
         let mut points_total = Vec::new();
-        let mut points = Vec::new();
+        let mut points: Vec<Box<dyn IVisData>> = Vec::new();
         let mut counter = 0i64;
 
         for op in &self.ops {
@@ -86,15 +81,15 @@ impl IVisDataGenerator for VecLineGen {
                 "MOVE" => {
                     cursor = PlotPoint::from([*op.argv[0].cast_ref(), *op.argv[1].cast_ref()]);
                     if points_total.len() == 0 {
-                        points.push(VecLineData::new(0.0, 0.0));
+                        points.push(Box::new(VecLineData::new(0.0, 0.0)));
                     }
                     points_total.push(points);
                     points = Vec::new();
-                    points.push(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref()));
+                    points.push(Box::new(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref())));
                 }
                 "LINE" => {
-                    points.push(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref()));
-                    points.push(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref()));
+                    points.push(Box::new(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref())));
+                    points.push(Box::new(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref())));
                     cursor = PlotPoint::from([*op.argv[0].cast_ref(), *op.argv[1].cast_ref()]);
                 }
                 "QUAD" => {
@@ -103,7 +98,7 @@ impl IVisDataGenerator for VecLineGen {
                     while t < 1.0 {
                         let x = (1.0f64 - t).powi(2) * cursor.x + 2.0 * (1.0 - t) * t * x1 + t.powi(2) * x2;
                         let y = (1.0f64 - t).powi(2) * cursor.y + 2.0 * (1.0 - t) * t * y1 + t.powi(2) * y2;
-                        points.push(VecLineData::new(x, y));
+                        points.push(Box::new(VecLineData::new(x, y)));
                         t += 0.01;
                     }
                     cursor = PlotPoint::from([x2, y2]);
@@ -114,7 +109,7 @@ impl IVisDataGenerator for VecLineGen {
                     while t < 1.0 {
                         let x = (1.0f64 - t).powi(3) * cursor.x + 3.0 * (1.0 - t).powi(2) * t * x1 + 3.0 * (1.0 - t) * t.powi(2) * x2 + t.powi(3) * x3;
                         let y = (1.0f64 - t).powi(3) * cursor.y + 3.0 * (1.0 - t).powi(2) * t * y1 + 3.0 * (1.0 - t) * t.powi(2) * y2 + t.powi(3) * y3;
-                        points.push(VecLineData::new(x, y));
+                        points.push(Box::new(VecLineData::new(x, y)));
                         t += 0.01;
                     }
                     cursor = PlotPoint::from([x3, y3]);

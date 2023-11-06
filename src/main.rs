@@ -10,8 +10,8 @@ use std::vec;
 use log::error;
 use eframe::{egui};
 use egui_extras::{Size, StripBuilder};
-use crate::common_vec_op::{CodeParser, CommonVecVisualizer, TextDataSrc, VecLineData, VecLineGen};
-use crate::interfaces::{ICodeEditor, IDataSource, IParser, IVisDataGenerator, IVisualizer, ParseError};
+use crate::common_vec_op::{CodeParser, CommonVecVisualizer, TextDataSrc, VecLineGen};
+use crate::interfaces::{ICodeEditor, IDataSource, IParser, IVisData, IVisDataGenerator, IVisualizer, ParseError};
 use crate::cus_component::{CodeEditor, toggle};
 use crate::syntax::{CommonVecOpSyntax};
 
@@ -48,7 +48,7 @@ fn main() -> Result<(), eframe::Error> {
 
 struct MainAppCache {
     code: TextDataSrc,
-    lines: Vec<Vec<VecLineData>>,
+    lines: Vec<Vec<Box<dyn IVisData>>>,
 
     params: MainAppParams,
 }

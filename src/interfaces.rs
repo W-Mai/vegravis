@@ -2,6 +2,7 @@ use std::cell::RefMut;
 use std::collections::HashSet;
 use std::ops::Range;
 use std::rc::Rc;
+use dyn_clone::DynClone;
 use eframe::egui;
 use egui_code_editor::Syntax;
 use levenshtein::levenshtein;
@@ -118,18 +119,15 @@ pub trait IEncoder {
 }
 
 pub trait IVisDataGenerator {
-    type CT;
-    type VDT: IVisData;
-
     fn add(&mut self, op: Command);
 
-    fn gen(&self, range: Range<i64>) -> Vec<Vec<Self::VDT>>;
+    fn gen(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>>;
 
     fn len(&self) -> usize;
 }
 
-pub trait IVisData {
-    fn new(x: AnyData, y: AnyData, data: AnyData) -> Self;
+pub trait IVisData: DynClone {
+    // fn new(x: AnyData, y: AnyData, data: AnyData) -> Self;
 
     fn pos(&self) -> [AnyData; 2];
 
@@ -137,14 +135,16 @@ pub trait IVisData {
         AnyData::new(())
     }
 
-    fn matrix(&self, matrix: [[f64; 3]; 3]) -> Self;
+    fn is_same(&self, another_data: &dyn IVisData) -> bool;
+
+    fn matrix(&self, matrix: [[f64; 3]; 3]) -> AnyData;
 }
 
-pub trait IVisualizer {
-    type VDT: IVisData;
+dyn_clone::clone_trait_object!(IVisData);
 
+pub trait IVisualizer {
     fn new(transform: [[f64; 3]; 3]) -> Self;
-    fn plot(&self, ui: &mut egui::Ui, input: Vec<Vec<Self::VDT>>, has_error: bool, show_inter_dash: bool, colorful_block: bool);
+    fn plot(&self, ui: &mut egui::Ui, input: Vec<Vec<Box<dyn IVisData>>>, has_error: bool, show_inter_dash: bool, colorful_block: bool);
 
     fn transform(&mut self, matrix: [[f64; 3]; 3]);
 }

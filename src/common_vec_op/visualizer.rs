@@ -11,15 +11,13 @@ pub struct CommonVecVisualizer {
 }
 
 impl IVisualizer for CommonVecVisualizer {
-    type VDT = VecLineData;
-
     fn new(transform: [[f64; 3]; 3]) -> Self {
         Self {
             t: transform,
         }
     }
 
-    fn plot(&self, ui: &mut Ui, input: Vec<Vec<Self::VDT>>, has_error: bool, show_inter_dash: bool, colorful_block: bool) {
+    fn plot(&self, ui: &mut Ui, input: Vec<Vec<Box<dyn IVisData>>>, has_error: bool, show_inter_dash: bool, colorful_block: bool) {
         let (a, b,
             c, d) = (
             self.t[0][0], self.t[1][1],
@@ -40,10 +38,11 @@ impl IVisualizer for CommonVecVisualizer {
             let mut last_line_end = lines.first().unwrap().last().unwrap().clone();
             let mut color_index = 0;
             for points in lines.into_iter() {
-                let mut points = points;
-                points = points.into_iter().map(|v| v.matrix(self.t)).collect::<Vec<VecLineData>>();
+                let points = points.into_iter().map(|v| {
+                    v.matrix(self.t).cast()
+                }).collect::<Vec<VecLineData>>();
                 let curr_line_start = points.first().unwrap().clone();
-                if last_line_end != curr_line_start && show_inter_dash {
+                if !last_line_end.is_same(&curr_line_start as &dyn IVisData) && show_inter_dash {
                     let last_line_end_pos: [f64; 2] = [*last_line_end.pos()[0].cast_ref(), *last_line_end.pos()[1].cast_ref()];
                     let curr_line_start_pos: [f64; 2] = [*curr_line_start.pos()[0].cast_ref(), *curr_line_start.pos()[1].cast_ref()];
                     let drawn_lines = Line::new(vec![last_line_end_pos, curr_line_start_pos])
@@ -54,7 +53,7 @@ impl IVisualizer for CommonVecVisualizer {
                         drawn_lines.stroke(Stroke::new(1.0, egui::Color32::LIGHT_GREEN))
                     });
                 }
-                last_line_end = points.last().unwrap().clone();
+                last_line_end = Box::new(points.last().unwrap().clone());
                 let points: Vec<[f64; 2]> = points.into_iter().map(
                     |v| {
                         [*v.pos()[0].cast_ref(), *v.pos()[1].cast_ref()]
