@@ -190,7 +190,7 @@ impl MainApp {
         let mut has_error = false;
         if self.code.cast_ref::<String>() != self.cache.code.cast_ref::<String>() || self.params != self.cache.params {
             let mut generator = VecLineGen::default();
-            let mut parser = CodeParser::new(AnyData::new(self.code.cast_ref::<String>().clone()), &mut generator);
+            let mut parser = CodeParser::new(self.code.clone::<String>(), &mut generator);
 
             has_error = match parser.parse() {
                 Ok(vlg) => {
@@ -203,7 +203,7 @@ impl MainApp {
                     let parsed = vlg.gen(0..(self.params.vis_progress));
 
                     self.cache.lines = parsed.clone();
-                    self.cache.code = AnyData::new(self.code.cast_ref::<String>().clone());
+                    self.cache.code = self.code.clone::<String>();
                     self.cache.params = self.params.clone();
                     false
                 }

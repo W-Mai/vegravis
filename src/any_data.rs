@@ -33,3 +33,10 @@ impl AnyData {
         }).collect()
     }
 }
+
+#[allow(unused)]
+impl AnyData {
+    pub fn clone<T: Any + Clone>(&self) -> Self {
+        AnyData::new(self.cast_ref::<T>().clone())
+    }
+}
