@@ -263,7 +263,7 @@ impl CodeParser<'_> {
         match cmd {
             Ok(dsc) => {
                 let params = self.read_n_params(dsc.argc)?;
-                let params = AnyData::convert_vec(params);
+                let params = AnyData::convert_to_vec(params);
                 return Ok(self.gen.add(dsc.pack(params)));
             }
             Err(maybe_cmd) => {

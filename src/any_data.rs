@@ -28,9 +28,15 @@ impl AnyData {
         self.data.downcast_mut().expect(NOT_MATCH_MSG)
     }
 
-    pub fn convert_vec<T: Any + Clone>(data: Vec<T>) -> Vec<AnyData> {
+    pub fn convert_to_vec<T: Any + Clone>(data: Vec<T>) -> Vec<AnyData> {
         data.iter().cloned().map(|v| {
             AnyData::new(v)
+        }).collect()
+    }
+
+    pub fn convert_from_vec<T: Any + Clone>(data: Vec<AnyData>) -> Vec<T> {
+        data.iter().map(|v| {
+            v.cast_ref::<T>().clone()
         }).collect()
     }
 }
