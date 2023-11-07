@@ -1,4 +1,3 @@
-use std::cell::RefMut;
 use std::collections::HashSet;
 use std::ops::Range;
 use std::rc::Rc;
@@ -96,28 +95,20 @@ pub trait ICommandSyntax {
     }
 }
 
-pub trait IDataSource: PartialEq {
-    type ST;
+pub trait IParser<'a> {
+    fn new(code: AnyData, gen: &'a mut dyn IVisDataGenerator) -> Self;
 
-    fn new(code: Self::ST) -> Self;
-    fn get(&self, name: &str) -> Option<Self::ST>;
-
-    fn get_ref(&self, name: &str) -> Option<RefMut<Self::ST>>;
-}
-
-pub trait IParser {
-    type DST: IDataSource;
-    type G: IVisDataGenerator;
-
-    fn new(code: Self::DST, gen: Self::G) -> Self;
-
-    fn parse(&mut self) -> Result<&Self::G, ParseError>;
+    fn parse(&'a mut self) -> Result<&'a mut dyn IVisDataGenerator, ParseError>;
 }
 
 pub trait IEncoder {
     fn encode(&self, input: &str) -> String;
 }
 
+/// Add data and generate VisData
+/// Common usage is parse to a parser, then the parser call VisDataGenerator.add to add data.
+/// Finally, pass the data added VisDataGenerator out of the parser
+/// Then, get the VisData vis using the VisDataGenerator.gen method.
 pub trait IVisDataGenerator {
     fn add(&mut self, op: Command);
 
@@ -127,8 +118,6 @@ pub trait IVisDataGenerator {
 }
 
 pub trait IVisData: DynClone {
-    // fn new(x: AnyData, y: AnyData, data: AnyData) -> Self;
-
     fn pos(&self) -> [AnyData; 2];
 
     fn data(&self) -> AnyData {
@@ -150,7 +139,5 @@ pub trait IVisualizer {
 }
 
 pub trait ICodeEditor {
-    type DST: IDataSource;
-
-    fn show(&self, ui: &mut egui::Ui, code: &mut Self::DST, format: &dyn ICommandSyntax) -> egui::Response;
+    fn show(&self, ui: &mut egui::Ui, code: &mut AnyData, format: &dyn ICommandSyntax) -> egui::Response;
 }

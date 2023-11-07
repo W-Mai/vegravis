@@ -10,8 +10,9 @@ use std::vec;
 use log::error;
 use eframe::{egui};
 use egui_extras::{Size, StripBuilder};
-use crate::common_vec_op::{CodeParser, CommonVecVisualizer, TextDataSrc, VecLineGen};
-use crate::interfaces::{ICodeEditor, IDataSource, IParser, IVisData, IVisDataGenerator, IVisualizer, ParseError};
+use crate::any_data::AnyData;
+use crate::common_vec_op::{CodeParser, CommonVecVisualizer, VecLineGen};
+use crate::interfaces::{ICodeEditor, IParser, IVisData, IVisualizer, ParseError};
 use crate::cus_component::{CodeEditor, toggle};
 use crate::syntax::{CommonVecOpSyntax};
 
@@ -47,7 +48,7 @@ fn main() -> Result<(), eframe::Error> {
 }
 
 struct MainAppCache {
-    code: TextDataSrc,
+    code: AnyData,
     lines: Vec<Vec<Box<dyn IVisData>>>,
 
     params: MainAppParams,
@@ -66,7 +67,7 @@ struct MainAppParams {
 }
 
 struct MainApp {
-    code: TextDataSrc,
+    code: AnyData,
     error: Option<ParseError>,
 
     params: MainAppParams,
@@ -77,10 +78,10 @@ struct MainApp {
 impl Default for MainApp {
     fn default() -> Self {
         Self {
-            code: TextDataSrc::new(DEFAULT_CODE.to_owned()),
+            code: AnyData::new(DEFAULT_CODE.to_owned()),
             params: MainAppParams::default(),
             cache: MainAppCache {
-                code: TextDataSrc::new("".to_owned()),
+                code: AnyData::new("".to_owned()),
                 lines: vec![],
                 params: MainAppParams::default(),
             },
@@ -187,21 +188,22 @@ impl MainApp {
         let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
 
         let mut has_error = false;
-        if self.code != self.cache.code || self.params != self.cache.params {
-            let mut parser = CodeParser::new(self.code.clone(), VecLineGen::default());
+        if self.code.cast_ref::<String>() != self.cache.code.cast_ref::<String>() || self.params != self.cache.params {
+            let mut generator = VecLineGen::default();
+            let mut parser = CodeParser::new(AnyData::new(self.code.cast_ref::<String>().clone()), &mut generator);
 
             has_error = match parser.parse() {
                 Ok(vlg) => {
                     let ops_count = vlg.len() as i64;
                     self.params.vis_progress_max = ops_count;
-                    if self.code != self.cache.code {
+                    if self.code.cast_ref::<String>() != self.cache.code.cast_ref::<String>() {
                         self.params.vis_progress = ops_count;
                     }
 
                     let parsed = vlg.gen(0..(self.params.vis_progress));
 
                     self.cache.lines = parsed.clone();
-                    self.cache.code = self.code.clone();
+                    self.cache.code = AnyData::new(self.code.cast_ref::<String>().clone());
                     self.cache.params = self.params.clone();
                     false
                 }

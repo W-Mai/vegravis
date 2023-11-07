@@ -1,15 +1,12 @@
 use crate::any_data::AnyData;
-use crate::common_vec_op::data_src::TextDataSrc;
-use crate::common_vec_op::gen::VecLineGen;
-use crate::interfaces::{Cursor, ICommandSyntax, IDataSource, IParser, IVisDataGenerator, ParseError};
+use crate::interfaces::{Cursor, ICommandSyntax, IParser, IVisDataGenerator, ParseError};
 use crate::syntax::CommonVecOpSyntax;
 
-#[derive(Debug, Clone)]
-pub struct CodeParser {
+pub struct CodeParser<'a> {
     pub code: String,
     pub cursor: Cursor,
 
-    gen: VecLineGen,
+    gen: &'a mut dyn IVisDataGenerator,
 }
 
 #[derive(Debug, Clone)]
@@ -54,27 +51,25 @@ struct Token {
 
 type ReadResult = Result<Token, ParseError>;
 
-impl IParser for CodeParser {
-    type DST = TextDataSrc;
-    type G = VecLineGen;
-
-    fn new(code: TextDataSrc, gen: VecLineGen) -> Self {
-        match code.get("") {
-            None => { Self { code: "".to_owned(), cursor: Cursor::default(), gen } }
-            Some(s) => { Self { code: s.to_owned(), cursor: Cursor::default(), gen } }
+impl<'a> IParser<'a> for CodeParser<'a> {
+    fn new(code: AnyData, gen: &'a mut dyn IVisDataGenerator) -> Self {
+        Self {
+            code: code.cast_ref::<String>().clone(),
+            cursor: Cursor::default(),
+            gen,
         }
     }
 
-    fn parse(&mut self) -> Result<&VecLineGen, ParseError> {
+    fn parse(&'a mut self) -> Result<&'a mut dyn IVisDataGenerator, ParseError> {
         self.eat_comments()?;
         while self.curr_pos() < self.code.len() {
             self.parse_op()?;
         }
-        Ok(&self.gen)
+        Ok(self.gen)
     }
 }
 
-impl CodeParser {
+impl CodeParser<'_> {
     fn cursor_next(&mut self, c: char) {
         self.cursor.pos += 1;
         self.cursor.col += 1;
