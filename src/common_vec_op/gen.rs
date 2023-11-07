@@ -79,18 +79,20 @@ impl IVisDataGenerator for VecLineGen {
             }
             match op.dsc.name {
                 "MOVE" => {
-                    cursor = PlotPoint::from([*op.argv[0].cast_ref(), *op.argv[1].cast_ref()]);
+                    let nums = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref()];
+                    cursor = PlotPoint::from(nums);
                     if points_total.len() == 0 {
                         points.push(Box::new(VecLineData::new(0.0, 0.0)));
                     }
                     points_total.push(points);
                     points = Vec::new();
-                    points.push(Box::new(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref())));
+                    points.push(Box::new(VecLineData::new(nums[0], nums[1])));
                 }
                 "LINE" => {
-                    points.push(Box::new(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref())));
-                    points.push(Box::new(VecLineData::new(*op.argv[0].cast_ref(), *op.argv[1].cast_ref())));
-                    cursor = PlotPoint::from([*op.argv[0].cast_ref(), *op.argv[1].cast_ref()]);
+                    let nums = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref()];
+                    points.push(Box::new(VecLineData::new(cursor.x, cursor.y)));
+                    points.push(Box::new(VecLineData::new(nums[0], nums[1])));
+                    cursor = PlotPoint::from(nums);
                 }
                 "QUAD" => {
                     let [x1, y1, x2, y2] = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref(), *op.argv[2].cast_ref(), *op.argv[3].cast_ref()];
