@@ -188,7 +188,7 @@ impl MainApp {
         let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
 
         let mut has_error = false;
-        if self.code.cast_ref::<String>() != self.cache.code.cast_ref::<String>() || self.params != self.cache.params {
+        if !self.code.equal::<String, String>(&self.cache.code) || self.params != self.cache.params {
             let mut generator = VecLineGen::default();
             let mut parser = CodeParser::new(self.code.clone::<String>(), &mut generator);
 
@@ -196,7 +196,7 @@ impl MainApp {
                 Ok(vlg) => {
                     let ops_count = vlg.len() as i64;
                     self.params.vis_progress_max = ops_count;
-                    if self.code.cast_ref::<String>() != self.cache.code.cast_ref::<String>() {
+                    if !self.code.equal::<String, String>(&self.cache.code) {
                         self.params.vis_progress = ops_count;
                     }
 
