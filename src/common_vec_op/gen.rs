@@ -1,7 +1,10 @@
+use std::fmt::{Debug, Formatter};
 use std::ops::{Range};
+use std::rc::Rc;
 use egui_plot::PlotPoint;
 use crate::any_data::AnyData;
-use crate::interfaces::{Command, IVisData, IVisDataGenerator};
+use crate::common_vec_op::syntax::CommonVecOpSyntax;
+use crate::interfaces::{Command, ICommandDescription, ICommandSyntax, IVisData, IVisDataGenerator};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct VecLineData {
@@ -77,7 +80,7 @@ impl IVisDataGenerator for VecLineGen {
             if !range.contains(&counter) {
                 continue;
             }
-            match op.dsc.name {
+            match op.dsc.name() {
                 "MOVE" => {
                     let nums = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref()];
                     cursor = PlotPoint::from(nums);
@@ -118,7 +121,7 @@ impl IVisDataGenerator for VecLineGen {
                 }
                 "END" => {}
                 _ => {
-                    unreachable!("Invalid command: {:?}", op);
+                    unreachable!("Invalid command: {:?}", op.dsc.name());
                 }
             }
 
@@ -134,10 +137,112 @@ impl IVisDataGenerator for VecLineGen {
     fn len(&self) -> usize {
         self.ops.len()
     }
+
+    fn command_syntax(&self) -> &'static dyn ICommandSyntax {
+        &CommonVecOpSyntax {}
+    }
 }
 
 impl Default for VecLineGen {
     fn default() -> Self {
         VecLineGen::new(vec![])
+    }
+}
+
+// ==============
+
+struct CommonOpMOVE;
+
+struct CommonOpLINE;
+
+struct CommonOpQUAD;
+
+struct CommonOpCUBI;
+
+struct CommonOpEND;
+
+impl ICommandDescription for CommonOpMOVE {
+    fn name(&self) -> &'static str {
+        "MOVE"
+    }
+
+    fn argc(&self) -> usize {
+        2
+    }
+
+    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        todo!()
+    }
+}
+
+impl ICommandDescription for CommonOpLINE {
+    fn name(&self) -> &'static str {
+        "LINE"
+    }
+
+    fn argc(&self) -> usize {
+        2
+    }
+
+    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        todo!()
+    }
+}
+
+impl ICommandDescription for CommonOpQUAD {
+    fn name(&self) -> &'static str {
+        "QUAD"
+    }
+
+    fn argc(&self) -> usize {
+        4
+    }
+
+    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        todo!()
+    }
+}
+
+impl ICommandDescription for CommonOpCUBI {
+    fn name(&self) -> &'static str {
+        "CUBI"
+    }
+
+    fn argc(&self) -> usize {
+        6
+    }
+
+    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        todo!()
+    }
+}
+
+impl ICommandDescription for CommonOpEND {
+    fn name(&self) -> &'static str {
+        "END"
+    }
+
+    fn argc(&self) -> usize {
+        0
+    }
+
+    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        todo!()
+    }
+}
+
+impl ICommandSyntax for CommonVecOpSyntax {
+    fn name(&self) -> &'static str {
+        "CommonVecOpSyntax"
+    }
+
+    fn formats(&self) -> Vec<&'static dyn ICommandDescription> {
+        return vec![
+            &CommonOpMOVE {},
+            &CommonOpLINE {},
+            &CommonOpQUAD {},
+            &CommonOpCUBI {},
+            &CommonOpEND {},
+        ];
     }
 }

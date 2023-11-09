@@ -1,5 +1,6 @@
 use std::collections::HashSet;
-use std::ops::Range;
+use std::fmt::{Debug, Formatter};
+use std::ops::{Deref, Range};
 use std::rc::Rc;
 use dyn_clone::DynClone;
 use eframe::egui;
@@ -7,27 +8,38 @@ use egui_code_editor::Syntax;
 use levenshtein::levenshtein;
 use crate::any_data::AnyData;
 
-#[derive(Debug, Clone)]
-pub struct CommandDescription {
-    pub name: &'static str,
-    pub argc: usize,
-}
+pub trait ICommandDescription {
+    fn name(&self) -> &'static str;
+    fn argc(&self) -> usize;
 
-impl CommandDescription {
-    pub fn pack(&'static self, argv: Vec<AnyData>) -> Command {
-        assert_eq!(argv.len(), self.argc);
+    fn pack(&'static self, argv: Vec<AnyData>) -> Command {
+        assert_eq!(argv.len(), self.argc());
 
         Command {
             dsc: self,
             argv: Rc::new(argv),
         }
     }
+
+    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData>;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Command {
-    pub dsc: &'static CommandDescription,
+    pub dsc: &'static dyn ICommandDescription,
     pub argv: Rc<Vec<AnyData>>,
+}
+
+impl Command {
+    pub fn operate(&self) -> Vec<AnyData> {
+        self.dsc.operate(self.argv.clone())
+    }
+}
+
+impl Debug for Command {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.dsc.name())
+    }
 }
 
 #[derive(Default, Debug, Clone)]
@@ -55,9 +67,10 @@ pub trait ICommandSyntax {
     fn case_sensitive(&self) -> bool {
         false
     }
-    fn formats(&self) -> Vec<&'static CommandDescription>;
+
+    fn formats(&self) -> Vec<&'static dyn ICommandDescription>;
     fn syntax(&self) -> Syntax {
-        let keywords = self.formats().iter().map(|cmd| cmd.name).collect::<HashSet<&str>>();
+        let keywords = self.formats().iter().map(|cmd| cmd.name()).collect::<HashSet<&str>>();
         let types = HashSet::new();
         let special = HashSet::new();
 
@@ -72,18 +85,18 @@ pub trait ICommandSyntax {
         }
     }
 
-    fn match_command(&self, cmd: &str) -> Result<&'static CommandDescription, &str> {
+    fn match_command(&self, cmd: &str) -> Result<&'static dyn ICommandDescription, &str> {
         let cmd = cmd.to_owned();
         let cmd = if self.case_sensitive() { cmd } else { cmd.to_uppercase() };
         let cmd = cmd.as_str();
         for desc in self.formats() {
-            if desc.name == cmd {
+            if desc.name() == cmd {
                 return Ok(desc);
             }
         }
         let mut dists = vec![];
         for desc in self.formats() {
-            dists.push((levenshtein(cmd, desc.name), desc.name));
+            dists.push((levenshtein(cmd, desc.name()), desc.name()));
         }
         dists.sort_by(|a, b| a.0.cmp(&b.0));
         let mut dists = dists.into_iter();
@@ -115,6 +128,8 @@ pub trait IVisDataGenerator {
     fn gen(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>>;
 
     fn len(&self) -> usize;
+
+    fn command_syntax(&self) -> &'static dyn ICommandSyntax;
 }
 
 pub trait IVisData: DynClone {

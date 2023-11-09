@@ -1,6 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-mod syntax;
 mod common_vec_op;
 mod cus_component;
 mod interfaces;
@@ -12,9 +11,8 @@ use eframe::{egui};
 use egui_extras::{Size, StripBuilder};
 use crate::any_data::AnyData;
 use crate::common_vec_op::{CodeParser, CommonVecVisualizer, VecLineGen};
-use crate::interfaces::{ICodeEditor, IParser, IVisData, IVisualizer, ParseError};
+use crate::interfaces::{ICodeEditor, IParser, IVisData, IVisDataGenerator, IVisualizer, ParseError};
 use crate::cus_component::{CodeEditor, toggle};
-use crate::syntax::{CommonVecOpSyntax};
 
 const DEFAULT_CODE: &str = include_str!("default_code");
 
@@ -178,7 +176,7 @@ impl MainApp {
     }
 
     fn ui_code_editor(&mut self, ui: &mut egui::Ui) {
-        CodeEditor {}.show(ui, &mut self.code, &CommonVecOpSyntax {});
+        CodeEditor {}.show(ui, &mut self.code, VecLineGen::default().command_syntax());
     }
 
     fn ui_visualizer(&mut self, ui: &mut egui::Ui) {
@@ -191,7 +189,7 @@ impl MainApp {
         if !self.code.equal::<String, String>(&self.cache.code) || self.params != self.cache.params {
             let mut generator = VecLineGen::default();
             let mut parser = CodeParser::new(self.code.clone::<String>(), &mut generator);
-
+            // 通过parser产生generator需要的前置数据
             has_error = match parser.parse() {
                 Ok(vlg) => {
                     let ops_count = vlg.len() as i64;

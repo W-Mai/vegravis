@@ -1,6 +1,5 @@
 use crate::any_data::AnyData;
 use crate::interfaces::{Cursor, ICommandSyntax, IParser, IVisDataGenerator, ParseError};
-use crate::syntax::CommonVecOpSyntax;
 
 pub struct CodeParser<'a> {
     pub code: String,
@@ -258,12 +257,13 @@ impl CodeParser<'_> {
         let ident_cur = ident.cursor.clone();
         let ident_string = ident.value.into_string()?;
         self.eat_comma()?;
-        let cmd = CommonVecOpSyntax {}.match_command(ident_string.as_str());
-
+        //TODO: change `CommonVecOpSyntax` to ICommandSyntax
+        let cmd = self.gen.command_syntax().match_command(ident_string.as_str());
         match cmd {
             Ok(dsc) => {
-                let params = self.read_n_params(dsc.argc)?;
+                let params = self.read_n_params(dsc.argc())?;
                 let params = AnyData::convert_to_vec(params);
+
                 return Ok(self.gen.add(dsc.pack(params)));
             }
             Err(maybe_cmd) => {
