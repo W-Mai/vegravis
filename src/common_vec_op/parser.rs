@@ -257,14 +257,15 @@ impl CodeParser<'_> {
         let ident_cur = ident.cursor.clone();
         let ident_string = ident.value.into_string()?;
         self.eat_comma()?;
-        //TODO: change `CommonVecOpSyntax` to ICommandSyntax
+
         let cmd = self.gen.command_syntax().match_command(ident_string.as_str());
         match cmd {
-            Ok(dsc) => {
-                let params = self.read_n_params(dsc.argc())?;
+            Ok(mut cmd) => {
+                let params = self.read_n_params(cmd.dsc.argc())?;
                 let params = AnyData::convert_to_vec(params);
+                cmd.pack(params);
 
-                return Ok(self.gen.add(dsc.pack(params)));
+                return Ok(self.gen.add(cmd));
             }
             Err(maybe_cmd) => {
                 if ident_string.len() == 0 {

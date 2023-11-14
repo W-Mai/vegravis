@@ -54,6 +54,11 @@ impl IVisData for VecLineData {
     }
 }
 
+struct GenerateCtx {
+    grouping: bool,
+    cursor: PlotPoint,
+}
+
 #[derive(Debug, Clone)]
 pub struct VecLineGen {
     ops: Vec<Command>,
@@ -71,7 +76,10 @@ impl IVisDataGenerator for VecLineGen {
     }
 
     fn gen(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>> {
-        let mut cursor = PlotPoint::new(0.0, 0.0);
+        let mut gen_ctx = AnyData::new(GenerateCtx {
+            grouping: false,
+            cursor: PlotPoint::new(0.0, 0.0),
+        });
         let mut points_total = Vec::new();
         let mut points: Vec<Box<dyn IVisData>> = Vec::new();
         let mut counter = 0i64;
@@ -80,56 +88,68 @@ impl IVisDataGenerator for VecLineGen {
             if !range.contains(&counter) {
                 continue;
             }
-            match op.dsc.name() {
-                "MOVE" => {
-                    let nums = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref()];
-                    cursor = PlotPoint::from(nums);
-                    if points_total.len() == 0 {
-                        points.push(Box::new(VecLineData::new(0.0, 0.0)));
-                    }
-                    points_total.push(points);
-                    points = Vec::new();
-                    points.push(Box::new(VecLineData::new(nums[0], nums[1])));
-                }
-                "LINE" => {
-                    let nums = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref()];
-                    points.push(Box::new(VecLineData::new(cursor.x, cursor.y)));
-                    points.push(Box::new(VecLineData::new(nums[0], nums[1])));
-                    cursor = PlotPoint::from(nums);
-                }
-                "QUAD" => {
-                    let [x1, y1, x2, y2] = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref(), *op.argv[2].cast_ref(), *op.argv[3].cast_ref()];
-                    let mut t = 0.0;
-                    while t < 1.0 {
-                        let x = (1.0f64 - t).powi(2) * cursor.x + 2.0 * (1.0 - t) * t * x1 + t.powi(2) * x2;
-                        let y = (1.0f64 - t).powi(2) * cursor.y + 2.0 * (1.0 - t) * t * y1 + t.powi(2) * y2;
-                        points.push(Box::new(VecLineData::new(x, y)));
-                        t += 0.01;
-                    }
-                    cursor = PlotPoint::from([x2, y2]);
-                }
-                "CUBI" => {
-                    let [x1, y1, x2, y2, x3, y3] = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref(), *op.argv[2].cast_ref(), *op.argv[3].cast_ref(), *op.argv[4].cast_ref(), *op.argv[5].cast_ref()];
-                    let mut t = 0.0;
-                    while t < 1.0 {
-                        let x = (1.0f64 - t).powi(3) * cursor.x + 3.0 * (1.0 - t).powi(2) * t * x1 + 3.0 * (1.0 - t) * t.powi(2) * x2 + t.powi(3) * x3;
-                        let y = (1.0f64 - t).powi(3) * cursor.y + 3.0 * (1.0 - t).powi(2) * t * y1 + 3.0 * (1.0 - t) * t.powi(2) * y2 + t.powi(3) * y3;
-                        points.push(Box::new(VecLineData::new(x, y)));
-                        t += 0.01;
-                    }
-                    cursor = PlotPoint::from([x3, y3]);
-                }
-                "END" => {}
-                _ => {
-                    unreachable!("Invalid command: {:?}", op.dsc.name());
-                }
+            if points_total.len() == 0 {
+                points.push(Box::new(VecLineData::new(0.0, 0.0)));
+                points_total.push(points.to_vec());
+                continue;
             }
+
+            points.extend(AnyData::convert_from_vec(op.operate(&mut gen_ctx)));
+            if !gen_ctx.cast_ref::<GenerateCtx>().grouping {
+                points_total.push(points.to_vec());
+                points = Vec::new();
+            }
+
+            // match op.dsc.name() {
+            //     "MOVE" => {
+            //         let nums = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref()];
+            //         cursor = PlotPoint::from(nums);
+            //         if points_total.len() == 0 {
+            //             points.push(Box::new(VecLineData::new(0.0, 0.0)));
+            //         }
+            //         points_total.push(points);
+            //         points = Vec::new();
+            //         points.push(Box::new(VecLineData::new(nums[0], nums[1])));
+            //     }
+            //     "LINE" => {
+            //         let nums = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref()];
+            //         points.push(Box::new(VecLineData::new(cursor.x, cursor.y)));
+            //         points.push(Box::new(VecLineData::new(nums[0], nums[1])));
+            //         cursor = PlotPoint::from(nums);
+            //     }
+            //     "QUAD" => {
+            //         let [x1, y1, x2, y2] = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref(), *op.argv[2].cast_ref(), *op.argv[3].cast_ref()];
+            //         let mut t = 0.0;
+            //         while t < 1.0 {
+            //             let x = (1.0f64 - t).powi(2) * cursor.x + 2.0 * (1.0 - t) * t * x1 + t.powi(2) * x2;
+            //             let y = (1.0f64 - t).powi(2) * cursor.y + 2.0 * (1.0 - t) * t * y1 + t.powi(2) * y2;
+            //             points.push(Box::new(VecLineData::new(x, y)));
+            //             t += 0.01;
+            //         }
+            //         cursor = PlotPoint::from([x2, y2]);
+            //     }
+            //     "CUBI" => {
+            //         let [x1, y1, x2, y2, x3, y3] = [*op.argv[0].cast_ref(), *op.argv[1].cast_ref(), *op.argv[2].cast_ref(), *op.argv[3].cast_ref(), *op.argv[4].cast_ref(), *op.argv[5].cast_ref()];
+            //         let mut t = 0.0;
+            //         while t < 1.0 {
+            //             let x = (1.0f64 - t).powi(3) * cursor.x + 3.0 * (1.0 - t).powi(2) * t * x1 + 3.0 * (1.0 - t) * t.powi(2) * x2 + t.powi(3) * x3;
+            //             let y = (1.0f64 - t).powi(3) * cursor.y + 3.0 * (1.0 - t).powi(2) * t * y1 + 3.0 * (1.0 - t) * t.powi(2) * y2 + t.powi(3) * y3;
+            //             points.push(Box::new(VecLineData::new(x, y)));
+            //             t += 0.01;
+            //         }
+            //         cursor = PlotPoint::from([x3, y3]);
+            //     }
+            //     "END" => {}
+            //     _ => {
+            //         unreachable!("Invalid command: {:?}", op.dsc.name());
+            //     }
+            // }
 
             counter += 1;
         }
-        if !points.is_empty() {
-            points_total.push(points);
-        }
+        // if !points.is_empty() {
+        //     points_total.push(points);
+        // }
 
         points_total
     }
@@ -170,8 +190,15 @@ impl ICommandDescription for CommonOpMOVE {
         2
     }
 
-    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        todo!()
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let nums = [*argv[0].cast_ref(), *argv[1].cast_ref()];
+        ctx.cursor = PlotPoint::from(nums);
+        ctx.grouping = false;
+
+        let mut points = Vec::new();
+        points.push(Box::new(VecLineData::new(nums[0], nums[1])));
+        AnyData::convert_to_vec(points)
     }
 }
 
@@ -184,8 +211,15 @@ impl ICommandDescription for CommonOpLINE {
         2
     }
 
-    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        todo!()
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let nums = [*argv[0].cast_ref(), *argv[1].cast_ref()];
+        ctx.cursor = PlotPoint::from(nums);
+        ctx.grouping = false;
+
+        let mut points = Vec::new();
+        points.push(Box::new(VecLineData::new(nums[0], nums[1])));
+        AnyData::convert_to_vec(points)
     }
 }
 
@@ -198,8 +232,15 @@ impl ICommandDescription for CommonOpQUAD {
         4
     }
 
-    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        todo!()
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let nums = [*argv[0].cast_ref(), *argv[1].cast_ref()];
+        ctx.cursor = PlotPoint::from(nums);
+        ctx.grouping = false;
+
+        let mut points = Vec::new();
+        points.push(Box::new(VecLineData::new(nums[0], nums[1])));
+        AnyData::convert_to_vec(points)
     }
 }
 
@@ -212,8 +253,15 @@ impl ICommandDescription for CommonOpCUBI {
         6
     }
 
-    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        todo!()
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let nums = [*argv[0].cast_ref(), *argv[1].cast_ref()];
+        ctx.cursor = PlotPoint::from(nums);
+        ctx.grouping = false;
+
+        let mut points = Vec::new();
+        points.push(Box::new(VecLineData::new(nums[0], nums[1])));
+        AnyData::convert_to_vec(points)
     }
 }
 
@@ -226,8 +274,8 @@ impl ICommandDescription for CommonOpEND {
         0
     }
 
-    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        todo!()
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        vec![]
     }
 }
 

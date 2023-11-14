@@ -12,16 +12,7 @@ pub trait ICommandDescription {
     fn name(&self) -> &'static str;
     fn argc(&self) -> usize;
 
-    fn pack(&'static self, argv: Vec<AnyData>) -> Command {
-        assert_eq!(argv.len(), self.argc());
-
-        Command {
-            dsc: self,
-            argv: Rc::new(argv),
-        }
-    }
-
-    fn operate(&self, argv: Rc<Vec<AnyData>>) -> Vec<AnyData>;
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData>;
 }
 
 #[derive(Clone)]
@@ -31,8 +22,14 @@ pub struct Command {
 }
 
 impl Command {
-    pub fn operate(&self) -> Vec<AnyData> {
-        self.dsc.operate(self.argv.clone())
+    pub fn pack(&mut self, argv: Vec<AnyData>) {
+        assert_eq!(argv.len(), self.dsc.argc());
+
+        self.argv = Rc::new(argv);
+    }
+
+    pub fn operate(&self, ctx: &mut AnyData) -> Vec<AnyData> {
+        self.dsc.operate(ctx, self.argv.clone())
     }
 }
 
@@ -85,13 +82,16 @@ pub trait ICommandSyntax {
         }
     }
 
-    fn match_command(&self, cmd: &str) -> Result<&'static dyn ICommandDescription, &str> {
+    fn match_command(&self, cmd: &str) -> Result<Command, &str> {
         let cmd = cmd.to_owned();
         let cmd = if self.case_sensitive() { cmd } else { cmd.to_uppercase() };
         let cmd = cmd.as_str();
         for desc in self.formats() {
             if desc.name() == cmd {
-                return Ok(desc);
+                return Ok(Command {
+                    dsc: desc,
+                    argv: Rc::new(vec![]),
+                });
             }
         }
         let mut dists = vec![];
