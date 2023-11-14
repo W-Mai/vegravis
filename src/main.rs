@@ -35,7 +35,7 @@ const COLOR_PALETTE: [egui::Color32; 10] = [
 fn main() -> Result<(), eframe::Error> {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        initial_window_size: Some(egui::vec2(960.0, 640.0)),
+        initial_window_size: Some(egui::vec2(1440.0, 960.0)),
         ..Default::default()
     };
     eframe::run_native(
@@ -52,7 +52,7 @@ struct MainAppCache {
     params: MainAppParams,
 }
 
-#[derive(Clone, PartialEq, Default)]
+#[derive(Clone, PartialEq)]
 struct MainAppParams {
     vis_progress: i64,
     vis_progress_max: i64,
@@ -62,6 +62,23 @@ struct MainAppParams {
     colorful_block: bool,
 
     trans_matrix: [[f64; 3]; 3],
+}
+
+impl Default for MainAppParams {
+    fn default() -> Self {
+        Self {
+            vis_progress: 0,
+            vis_progress_max: 0,
+            lcd_coords: false,
+            show_inter_dash: false,
+            colorful_block: false,
+            trans_matrix: [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0],
+            ], // Identity matrix
+        }
+    }
 }
 
 struct MainApp {
@@ -90,12 +107,6 @@ impl Default for MainApp {
 
 impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        self.params.trans_matrix = [
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0],
-        ]; // Identity matrix
-
         egui::CentralPanel::default().show(ctx, |ui| {
             StripBuilder::new(ui)
                 .size(Size::exact(30.0))
@@ -117,7 +128,7 @@ impl eframe::App for MainApp {
                                 });
                                 strip.strip(|builder| {
                                     builder
-                                        .size(Size::exact(60.0))
+                                        .size(Size::exact(180.0))
                                         .size(Size::exact(30.0))
                                         .size(Size::remainder())
                                         .vertical(|mut strip| {
@@ -172,6 +183,111 @@ impl MainApp {
                                  .show_value(true),
                 );
             });
+            StripBuilder::new(ui)
+                .size(Size::exact(30.0))
+                .size(Size::remainder())
+                .vertical(|mut strip| {
+                    strip.cell(|ui| {
+                        ui.vertical_centered(|ui| {
+                            ui.heading("Transform Matrix");
+                        });
+                    });
+                    strip.strip(|builder| {
+                        builder
+                            .size(Size::exact(20.0))
+                            .size(Size::exact(20.0))
+                            .size(Size::exact(20.0)) // 3x3 matrix
+                            .vertical(|mut strip| {
+                                strip.strip(|builder| {
+                                    builder
+                                        .size(Size::relative(0.33))
+                                        .size(Size::relative(0.33))
+                                        .size(Size::relative(0.33)) // 3x3 matrix
+                                        .horizontal(|mut strip| {
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[0][0], -5.0..=5.0)
+                                                                 .text("m00")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[0][1], -5.0..=5.0)
+                                                                 .text("m01")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[0][2], -100.0..=100.0)
+                                                                 .text("m02")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                        });
+                                });
+                                strip.strip(|builder| {
+                                    builder
+                                        .size(Size::relative(0.33))
+                                        .size(Size::relative(0.33))
+                                        .size(Size::relative(0.33)) // 3x3 matrix
+                                        .horizontal(|mut strip| {
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[1][0], -5.0..=5.0)
+                                                                 .text("m10")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[1][1], -5.0..=5.0)
+                                                                 .text("m11")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[1][2], -100.0..=100.0)
+                                                                 .text("m12")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                        });
+                                });
+                                strip.strip(|builder| {
+                                    builder
+                                        .size(Size::relative(0.33))
+                                        .size(Size::relative(0.33))
+                                        .size(Size::relative(0.33)) // 3x3 matrix
+                                        .horizontal(|mut strip| {
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[2][0], -5.0..=5.0)
+                                                                 .text("m20")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[2][1], -5.0..=5.0)
+                                                                 .text("m21")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                            strip.cell(|ui| {
+                                                ui.add_sized(ui.available_size(),
+                                                             egui::Slider::new(&mut self.params.trans_matrix[2][2], -5.0..=5.0)
+                                                                 .text("m22")
+                                                                 .show_value(true),
+                                                );
+                                            });
+                                        });
+                                });
+                            });
+                    });
+                });
         });
     }
 
