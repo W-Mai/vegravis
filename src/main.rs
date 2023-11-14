@@ -220,7 +220,7 @@ impl MainApp {
                                             });
                                             strip.cell(|ui| {
                                                 ui.add_sized(ui.available_size(),
-                                                             egui::Slider::new(&mut self.params.trans_matrix[0][2], -100.0..=100.0)
+                                                             egui::Slider::new(&mut self.params.trans_matrix[0][2], -500.0..=500.0)
                                                                  .text("m02")
                                                                  .show_value(true),
                                                 );
@@ -249,7 +249,7 @@ impl MainApp {
                                             });
                                             strip.cell(|ui| {
                                                 ui.add_sized(ui.available_size(),
-                                                             egui::Slider::new(&mut self.params.trans_matrix[1][2], -100.0..=100.0)
+                                                             egui::Slider::new(&mut self.params.trans_matrix[1][2], -500.0..=500.0)
                                                                  .text("m12")
                                                                  .show_value(true),
                                                 );
@@ -264,14 +264,14 @@ impl MainApp {
                                         .horizontal(|mut strip| {
                                             strip.cell(|ui| {
                                                 ui.add_sized(ui.available_size(),
-                                                             egui::Slider::new(&mut self.params.trans_matrix[2][0], -5.0..=5.0)
+                                                             egui::Slider::new(&mut self.params.trans_matrix[2][0], -500.0..=500.0)
                                                                  .text("m20")
                                                                  .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
                                                 ui.add_sized(ui.available_size(),
-                                                             egui::Slider::new(&mut self.params.trans_matrix[2][1], -5.0..=5.0)
+                                                             egui::Slider::new(&mut self.params.trans_matrix[2][1], -500.0..=500.0)
                                                                  .text("m21")
                                                                  .show_value(true),
                                                 );

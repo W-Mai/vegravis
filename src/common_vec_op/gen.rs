@@ -43,10 +43,11 @@ impl IVisData for VecLineData {
                 matrix[2][0], matrix[2][1], matrix[2][2],
             ];
             let [x, y, z] = point;
+            let z_ = g * x + h * y + i * z;
             [
-                a * x + b * y + c * z,
-                d * x + e * y + f * z,
-                g * x + h * y + i * z,
+                (a * x + b * y + c * z) / z_,
+                (d * x + e * y + f * z) / z_,
+                1.0,
             ]
         }
         let [x, y, _] = mul_point(matrix, [self.x, self.y, 1.0]);
