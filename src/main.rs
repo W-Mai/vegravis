@@ -266,21 +266,21 @@ impl MainApp {
                                         .horizontal(|mut strip| {
                                             strip.cell(|ui| {
                                                 ui.add_sized(ui.available_size(),
-                                                             egui::Slider::new(&mut self.params.trans_matrix[2][0], -500.0..=500.0)
+                                                             egui::Slider::new(&mut self.params.trans_matrix[2][0], -5.0..=5.0)
                                                                  .text("m20")
                                                                  .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
                                                 ui.add_sized(ui.available_size(),
-                                                             egui::Slider::new(&mut self.params.trans_matrix[2][1], -500.0..=500.0)
+                                                             egui::Slider::new(&mut self.params.trans_matrix[2][1], -5.0..=5.0)
                                                                  .text("m21")
                                                                  .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
                                                 ui.add_sized(ui.available_size(),
-                                                             egui::Slider::new(&mut self.params.trans_matrix[2][2], -5.0..=5.0)
+                                                             egui::Slider::new(&mut self.params.trans_matrix[2][2], -500.0..=500.0)
                                                                  .text("m22")
                                                                  .show_value(true),
                                                 );
