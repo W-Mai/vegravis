@@ -1,10 +1,12 @@
+use crate::any_data::AnyData;
+use crate::common_vec_op::syntax::CommonVecOpSyntax;
+use crate::interfaces::{
+    Command, ICommandDescription, ICommandSyntax, IVisData, IVisDataGenerator,
+};
+use egui_plot::PlotPoint;
 use std::fmt::Debug;
 use std::ops::Range;
 use std::rc::Rc;
-use egui_plot::PlotPoint;
-use crate::any_data::AnyData;
-use crate::common_vec_op::syntax::CommonVecOpSyntax;
-use crate::interfaces::{Command, ICommandDescription, ICommandSyntax, IVisData, IVisDataGenerator};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct VecLineData {
@@ -14,10 +16,7 @@ pub struct VecLineData {
 
 impl VecLineData {
     fn new(x: f64, y: f64) -> Self {
-        Self {
-            x,
-            y,
-        }
+        Self { x, y }
     }
 }
 
@@ -33,14 +32,16 @@ impl IVisData for VecLineData {
 
     fn matrix(&self, matrix: [[f64; 3]; 3]) -> AnyData {
         fn mul_point(matrix: [[f64; 3]; 3], point: [f64; 3]) -> [f64; 3] {
-            let [
-            a, b, c,
-            d, e, f,
-            g, h, i
-            ] = [
-                matrix[0][0], matrix[0][1], matrix[0][2],
-                matrix[1][0], matrix[1][1], matrix[1][2],
-                matrix[2][0], matrix[2][1], matrix[2][2],
+            let [a, b, c, d, e, f, g, h, i] = [
+                matrix[0][0],
+                matrix[0][1],
+                matrix[0][2],
+                matrix[1][0],
+                matrix[1][1],
+                matrix[1][2],
+                matrix[2][0],
+                matrix[2][1],
+                matrix[2][2],
             ];
             let [x, y, z] = point;
             let z_ = g * x + h * y + i * z;
@@ -96,10 +97,15 @@ impl IVisDataGenerator for VecLineGen {
             let converted = AnyData::convert_from_vec::<VecLineData>(op.operate(&mut gen_ctx));
 
             if gen_ctx.cast_ref::<GenerateCtx>().grouping {
-                points.append(&mut converted.iter().map(|v| {
-                    let res: Box<dyn IVisData> = Box::new(v.clone());
-                    res
-                }).collect());
+                points.append(
+                    &mut converted
+                        .iter()
+                        .map(|v| {
+                            let res: Box<dyn IVisData> = Box::new(v.clone());
+                            res
+                        })
+                        .collect(),
+                );
                 counter += 1;
                 continue;
             }
@@ -155,9 +161,7 @@ impl ICommandDescription for CommonOpMOVE {
         let ctx = ctx.cast_mut::<GenerateCtx>();
         let nums = [*argv[0].cast_ref(), *argv[1].cast_ref()];
 
-        let points = vec![
-            VecLineData::new(nums[0], nums[1])
-        ];
+        let points = vec![VecLineData::new(nums[0], nums[1])];
 
         ctx.grouping = false;
         ctx.cursor = PlotPoint::from(nums);
@@ -202,7 +206,12 @@ impl ICommandDescription for CommonOpQUAD {
 
     fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         let ctx = ctx.cast_mut::<GenerateCtx>();
-        let [x1, y1, x2, y2] = [*argv[0].cast_ref(), *argv[1].cast_ref(), *argv[2].cast_ref(), *argv[3].cast_ref()];
+        let [x1, y1, x2, y2] = [
+            *argv[0].cast_ref(),
+            *argv[1].cast_ref(),
+            *argv[2].cast_ref(),
+            *argv[3].cast_ref(),
+        ];
 
         let cursor = ctx.cursor;
         let mut points = Vec::new();
@@ -232,14 +241,27 @@ impl ICommandDescription for CommonOpCUBI {
 
     fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         let ctx = ctx.cast_mut::<GenerateCtx>();
-        let [x1, y1, x2, y2, x3, y3] = [*argv[0].cast_ref(), *argv[1].cast_ref(), *argv[2].cast_ref(), *argv[3].cast_ref(), *argv[4].cast_ref(), *argv[5].cast_ref()];
+        let [x1, y1, x2, y2, x3, y3] = [
+            *argv[0].cast_ref(),
+            *argv[1].cast_ref(),
+            *argv[2].cast_ref(),
+            *argv[3].cast_ref(),
+            *argv[4].cast_ref(),
+            *argv[5].cast_ref(),
+        ];
 
         let cursor = ctx.cursor;
         let mut points = Vec::new();
         let mut t = 0.0;
         while t < 1.0 {
-            let x = (1.0f64 - t).powi(3) * cursor.x + 3.0 * (1.0 - t).powi(2) * t * x1 + 3.0 * (1.0 - t) * t.powi(2) * x2 + t.powi(3) * x3;
-            let y = (1.0f64 - t).powi(3) * cursor.y + 3.0 * (1.0 - t).powi(2) * t * y1 + 3.0 * (1.0 - t) * t.powi(2) * y2 + t.powi(3) * y3;
+            let x = (1.0f64 - t).powi(3) * cursor.x
+                + 3.0 * (1.0 - t).powi(2) * t * x1
+                + 3.0 * (1.0 - t) * t.powi(2) * x2
+                + t.powi(3) * x3;
+            let y = (1.0f64 - t).powi(3) * cursor.y
+                + 3.0 * (1.0 - t).powi(2) * t * y1
+                + 3.0 * (1.0 - t) * t.powi(2) * y2
+                + t.powi(3) * y3;
             points.push(VecLineData::new(x, y));
             t += 0.01;
         }

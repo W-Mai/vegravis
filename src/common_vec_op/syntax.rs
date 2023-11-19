@@ -1,3 +1,1 @@
-pub struct CommonVecOpSyntax {
-
-}
+pub struct CommonVecOpSyntax {}

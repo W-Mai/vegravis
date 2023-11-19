@@ -106,7 +106,10 @@ impl CodeParser<'_> {
                 break;
             }
         }
-        Ok(Token { value: TokenValue::Ident(ident), cursor: (cur, self.curr_cur()) })
+        Ok(Token {
+            value: TokenValue::Ident(ident),
+            cursor: (cur, self.curr_cur()),
+        })
     }
 
     fn read_number(&mut self) -> ReadResult {
@@ -122,10 +125,14 @@ impl CodeParser<'_> {
             }
         }
         match number.parse() {
-            Ok(n) => Ok(Token { value: TokenValue::Number(n), cursor: (cur, self.curr_cur()) }),
-            Err(_) => {
-                Err(ParseError { msg: format!("Invalid number '{}'", number), cursor: cur })
-            }
+            Ok(n) => Ok(Token {
+                value: TokenValue::Number(n),
+                cursor: (cur, self.curr_cur()),
+            }),
+            Err(_) => Err(ParseError {
+                msg: format!("Invalid number '{}'", number),
+                cursor: cur,
+            }),
         }
     }
 
@@ -160,11 +167,17 @@ impl CodeParser<'_> {
                 self.cursor_next(c);
                 break;
             } else {
-                return Err(ParseError { msg: "Expected comma".to_owned(), cursor: cur });
+                return Err(ParseError {
+                    msg: "Expected comma".to_owned(),
+                    cursor: cur,
+                });
             }
         }
         self.eat_comments()?;
-        Ok(Token { value: TokenValue::Comma, cursor: (cur, self.curr_cur()) })
+        Ok(Token {
+            value: TokenValue::Comma,
+            cursor: (cur, self.curr_cur()),
+        })
     }
 
     fn eat_comments(&mut self) -> ReadResult {
@@ -214,10 +227,16 @@ impl CodeParser<'_> {
             _ => {}
         }
         if !self.not_eof() && cur.pos != self.curr_pos() {
-            return Err(ParseError { msg: "Invalid comment".to_owned(), cursor: cur });
+            return Err(ParseError {
+                msg: "Invalid comment".to_owned(),
+                cursor: cur,
+            });
         }
         let comment = self.code[cur.pos..self.curr_pos()].to_owned();
-        Ok(Token { value: TokenValue::Comment(comment), cursor: (cur, self.curr_cur()) })
+        Ok(Token {
+            value: TokenValue::Comment(comment),
+            cursor: (cur, self.curr_cur()),
+        })
     }
 
     fn check_comment(&mut self) -> Option<CommentType> {
@@ -258,7 +277,10 @@ impl CodeParser<'_> {
         let ident_string = ident.value.into_string()?;
         self.eat_comma()?;
 
-        let cmd = self.gen.command_syntax().match_command(ident_string.as_str());
+        let cmd = self
+            .gen
+            .command_syntax()
+            .match_command(ident_string.as_str());
         match cmd {
             Ok(mut cmd) => {
                 let params = self.read_n_params(cmd.dsc.argc())?;
@@ -269,11 +291,23 @@ impl CodeParser<'_> {
             }
             Err(maybe_cmd) => {
                 if ident_string.len() == 0 {
-                    Err(ParseError { msg: "Empty op type".to_owned(), cursor: ident_cur.0 })
+                    Err(ParseError {
+                        msg: "Empty op type".to_owned(),
+                        cursor: ident_cur.0,
+                    })
                 } else if maybe_cmd.len() > 0 {
-                    Err(ParseError { msg: format!("Invalid op type '{}', maybe it is '{}'", ident_string, maybe_cmd), cursor: ident_cur.0 })
+                    Err(ParseError {
+                        msg: format!(
+                            "Invalid op type '{}', maybe it is '{}'",
+                            ident_string, maybe_cmd
+                        ),
+                        cursor: ident_cur.0,
+                    })
                 } else {
-                    Err(ParseError { msg: format!("Invalid op type '{}'", ident_string), cursor: ident_cur.0 })
+                    Err(ParseError {
+                        msg: format!("Invalid op type '{}'", ident_string),
+                        cursor: ident_cur.0,
+                    })
                 }
             }
         }

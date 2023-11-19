@@ -1,8 +1,8 @@
 mod code_editor;
 
+pub use code_editor::CodeEditor;
 use eframe::egui;
 use eframe::egui::RichText;
-pub use code_editor::CodeEditor;
 
 #[allow(dead_code)]
 fn toggle_ui(ui: &mut egui::Ui, label: impl Into<RichText>, on: &mut bool) -> egui::Response {

@@ -1,12 +1,12 @@
-use std::collections::HashSet;
-use std::fmt::{Debug, Formatter};
-use std::ops::Range;
-use std::rc::Rc;
+use crate::any_data::AnyData;
 use dyn_clone::DynClone;
 use eframe::egui;
 use egui_code_editor::Syntax;
 use levenshtein::levenshtein;
-use crate::any_data::AnyData;
+use std::collections::HashSet;
+use std::fmt::{Debug, Formatter};
+use std::ops::Range;
+use std::rc::Rc;
 
 pub trait ICommandDescription {
     fn name(&self) -> &'static str;
@@ -54,7 +54,10 @@ pub struct ParseError {
 
 impl Default for ParseError {
     fn default() -> Self {
-        Self { msg: "Internal Error".to_owned(), cursor: Cursor::default() }
+        Self {
+            msg: "Internal Error".to_owned(),
+            cursor: Cursor::default(),
+        }
     }
 }
 
@@ -67,7 +70,11 @@ pub trait ICommandSyntax {
 
     fn formats(&self) -> Vec<&'static dyn ICommandDescription>;
     fn syntax(&self) -> Syntax {
-        let keywords = self.formats().iter().map(|cmd| cmd.name()).collect::<HashSet<&str>>();
+        let keywords = self
+            .formats()
+            .iter()
+            .map(|cmd| cmd.name())
+            .collect::<HashSet<&str>>();
         let types = HashSet::new();
         let special = HashSet::new();
 
@@ -84,7 +91,11 @@ pub trait ICommandSyntax {
 
     fn match_command(&self, cmd: &str) -> Result<Command, &str> {
         let cmd = cmd.to_owned();
-        let cmd = if self.case_sensitive() { cmd } else { cmd.to_uppercase() };
+        let cmd = if self.case_sensitive() {
+            cmd
+        } else {
+            cmd.to_uppercase()
+        };
         let cmd = cmd.as_str();
         for desc in self.formats() {
             if desc.name() == cmd {
@@ -148,11 +159,23 @@ dyn_clone::clone_trait_object!(IVisData);
 
 pub trait IVisualizer {
     fn new(transform: [[f64; 3]; 3]) -> Self;
-    fn plot(&self, ui: &mut egui::Ui, input: Vec<Vec<Box<dyn IVisData>>>, has_error: bool, show_inter_dash: bool, colorful_block: bool);
+    fn plot(
+        &self,
+        ui: &mut egui::Ui,
+        input: Vec<Vec<Box<dyn IVisData>>>,
+        has_error: bool,
+        show_inter_dash: bool,
+        colorful_block: bool,
+    );
 
     fn transform(&mut self, matrix: [[f64; 3]; 3]);
 }
 
 pub trait ICodeEditor {
-    fn show(&self, ui: &mut egui::Ui, code: &mut AnyData, format: &dyn ICommandSyntax) -> egui::Response;
+    fn show(
+        &self,
+        ui: &mut egui::Ui,
+        code: &mut AnyData,
+        format: &dyn ICommandSyntax,
+    ) -> egui::Response;
 }

@@ -1,8 +1,8 @@
 mod gen;
 mod parser;
-mod visualizer;
 mod syntax;
+mod visualizer;
 
-pub use gen::{VecLineGen, VecLineData};
+pub use gen::{VecLineData, VecLineGen};
 pub use parser::CodeParser;
 pub use visualizer::CommonVecVisualizer;

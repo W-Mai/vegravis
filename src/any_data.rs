@@ -12,7 +12,7 @@ pub struct AnyData {
 impl AnyData {
     pub fn new<T: Any>(data: T) -> Self {
         Self {
-            data: Box::new(data)
+            data: Box::new(data),
         }
     }
 
@@ -29,15 +29,11 @@ impl AnyData {
     }
 
     pub fn convert_to_vec<T: Any + Clone>(data: Vec<T>) -> Vec<AnyData> {
-        data.iter().cloned().map(|v| {
-            AnyData::new(v)
-        }).collect()
+        data.iter().cloned().map(|v| AnyData::new(v)).collect()
     }
 
     pub fn convert_from_vec<T: Any + Clone>(data: Vec<AnyData>) -> Vec<T> {
-        data.iter().map(|v| {
-            v.cast_ref::<T>().clone()
-        }).collect()
+        data.iter().map(|v| v.cast_ref::<T>().clone()).collect()
     }
 }
 
@@ -47,11 +43,17 @@ impl AnyData {
         AnyData::new(self.cast_ref::<T>().clone())
     }
 
-    pub fn equal<T1: Any + PartialEq + PartialEq<T2>, T2: Any + PartialEq>(&self, another: &AnyData) -> bool {
+    pub fn equal<T1: Any + PartialEq + PartialEq<T2>, T2: Any + PartialEq>(
+        &self,
+        another: &AnyData,
+    ) -> bool {
         self.cast_ref::<T1>() == another.cast_ref::<T2>()
     }
 
-    pub fn compare<T1: Any + PartialOrd + PartialOrd<T2>, T2: Any + PartialOrd>(&self, another: &AnyData) -> Ordering {
+    pub fn compare<T1: Any + PartialOrd + PartialOrd<T2>, T2: Any + PartialOrd>(
+        &self,
+        another: &AnyData,
+    ) -> Ordering {
         let lhs = self.cast_ref::<T1>();
         let rhs = another.cast_ref::<T2>();
         if lhs > rhs {
