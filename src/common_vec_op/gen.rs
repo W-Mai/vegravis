@@ -94,11 +94,20 @@ impl IVisDataGenerator for VecLineGen {
                 continue;
             }
 
-            points.extend(AnyData::convert_from_vec(op.operate(&mut gen_ctx)));
+            let converted = AnyData::convert_from_vec::<VecLineData>(op.operate(&mut gen_ctx));
+
             if !gen_ctx.cast_ref::<GenerateCtx>().grouping {
-                points_total.push(points.to_vec());
-                points = Vec::new();
+                println!("Grouping");
+                points_total.push(converted.iter().map(|v| {
+                    let res: Box<dyn IVisData> = Box::new(v.clone());
+                    res
+                }).collect());
             }
+
+            // if !gen_ctx.cast_ref::<GenerateCtx>().grouping {
+            //     points_total.push(points.to_vec());
+            //     points = Vec::new();
+            // }
 
             // match op.dsc.name() {
             //     "MOVE" => {
@@ -196,8 +205,9 @@ impl ICommandDescription for CommonOpMOVE {
         ctx.cursor = PlotPoint::from(nums);
         ctx.grouping = false;
 
-        let mut points = Vec::new();
-        points.push(Box::new(VecLineData::new(nums[0], nums[1])));
+        let points = vec![
+            VecLineData::new(nums[0], nums[1])
+        ];
         AnyData::convert_to_vec(points)
     }
 }

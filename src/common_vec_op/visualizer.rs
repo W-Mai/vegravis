@@ -38,6 +38,9 @@ impl IVisualizer for CommonVecVisualizer {
             let mut last_line_end = lines.first().unwrap().last().unwrap().clone();
             let mut color_index = 0;
             for points in lines.into_iter() {
+                if points.len() == 0 {
+                    continue;
+                }
                 let points = points.into_iter().map(|v| {
                     v.matrix(self.t).cast()
                 }).collect::<Vec<VecLineData>>();
