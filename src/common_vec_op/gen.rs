@@ -1,5 +1,5 @@
-use std::fmt::{Debug, Formatter};
-use std::ops::{Range};
+use std::fmt::Debug;
+use std::ops::Range;
 use std::rc::Rc;
 use egui_plot::PlotPoint;
 use crate::any_data::AnyData;
@@ -95,7 +95,6 @@ impl IVisDataGenerator for VecLineGen {
             let converted = AnyData::convert_from_vec::<VecLineData>(op.operate(&mut gen_ctx));
 
             if gen_ctx.cast_ref::<GenerateCtx>().grouping {
-                println!("Grouping");
                 points.append(&mut converted.iter().map(|v| {
                     let res: Box<dyn IVisData> = Box::new(v.clone());
                     res
@@ -260,7 +259,7 @@ impl ICommandDescription for CommonOpEND {
         0
     }
 
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+    fn operate(&self, _ctx: &mut AnyData, _argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         vec![]
     }
 }

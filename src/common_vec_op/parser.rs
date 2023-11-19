@@ -1,5 +1,5 @@
 use crate::any_data::AnyData;
-use crate::interfaces::{Cursor, ICommandSyntax, IParser, IVisDataGenerator, ParseError};
+use crate::interfaces::{Cursor, IParser, IVisDataGenerator, ParseError};
 
 pub struct CodeParser<'a> {
     pub code: String,

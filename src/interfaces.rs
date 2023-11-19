@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::fmt::{Debug, Formatter};
-use std::ops::{Deref, Range};
+use std::ops::Range;
 use std::rc::Rc;
 use dyn_clone::DynClone;
 use eframe::egui;
