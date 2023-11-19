@@ -161,6 +161,8 @@ impl CodeParser<'_> {
     fn eat_comma(&mut self) -> ReadResult {
         let cur = self.curr_cur();
         self.eat_comments()?;
+
+        #[allow(clippy::never_loop)]
         while self.not_eof() {
             let c = self.curr_ch();
             if c == ',' {
@@ -287,15 +289,16 @@ impl CodeParser<'_> {
                 let params = AnyData::convert_to_vec(params);
                 cmd.pack(params);
 
-                return Ok(self.gen.add(cmd));
+                self.gen.add(cmd);
+                Ok(())
             }
             Err(maybe_cmd) => {
-                if ident_string.len() == 0 {
+                if ident_string.is_empty() {
                     Err(ParseError {
                         msg: "Empty op type".to_owned(),
                         cursor: ident_cur.0,
                     })
-                } else if maybe_cmd.len() > 0 {
+                } else if !maybe_cmd.is_empty() {
                     Err(ParseError {
                         msg: format!(
                             "Invalid op type '{}', maybe it is '{}'",

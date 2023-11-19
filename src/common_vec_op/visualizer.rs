@@ -35,20 +35,20 @@ impl IVisualizer for CommonVecVisualizer {
             });
         plot.show(ui, |plot_ui| {
             let lines = input;
-            if lines.len() == 0 {
+            if lines.is_empty() {
                 return;
             }
             let mut last_line_end = lines.first().unwrap().last().unwrap().clone();
             let mut color_index = 0;
             for points in lines.into_iter() {
-                if points.len() == 0 {
+                if points.is_empty() {
                     continue;
                 }
                 let points = points
                     .into_iter()
                     .map(|v| v.matrix(self.t).cast())
                     .collect::<Vec<VecLineData>>();
-                let curr_line_start = points.first().unwrap().clone();
+                let curr_line_start = *points.first().unwrap();
                 if !last_line_end.is_same(&curr_line_start as &dyn IVisData) && show_inter_dash {
                     let last_line_end_pos: [f64; 2] = [
                         *last_line_end.pos()[0].cast_ref(),
@@ -66,7 +66,7 @@ impl IVisualizer for CommonVecVisualizer {
                         drawn_lines.stroke(Stroke::new(1.0, egui::Color32::LIGHT_GREEN))
                     });
                 }
-                last_line_end = Box::new(points.last().unwrap().clone());
+                last_line_end = Box::new(*points.last().unwrap());
                 let points: Vec<[f64; 2]> = points
                     .into_iter()
                     .map(|v| [*v.pos()[0].cast_ref(), *v.pos()[1].cast_ref()])

@@ -101,7 +101,7 @@ impl IVisDataGenerator for VecLineGen {
                     &mut converted
                         .iter()
                         .map(|v| {
-                            let res: Box<dyn IVisData> = Box::new(v.clone());
+                            let res: Box<dyn IVisData> = Box::new(*v);
                             res
                         })
                         .collect(),
@@ -293,12 +293,12 @@ impl ICommandSyntax for CommonVecOpSyntax {
     }
 
     fn formats(&self) -> Vec<&'static dyn ICommandDescription> {
-        return vec![
+        vec![
             &CommonOpMOVE {},
             &CommonOpLINE {},
             &CommonOpQUAD {},
             &CommonOpCUBI {},
             &CommonOpEND {},
-        ];
+        ]
     }
 }
