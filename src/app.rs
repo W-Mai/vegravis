@@ -71,6 +71,21 @@ impl Default for MainApp {
 
 impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::Window::new("Options")
+            .fixed_size([600.0, 200.0])
+            .default_pos(ctx.available_rect().right_top())
+            .show(ctx, |ui| {
+                self.ui_options_panel(ui);
+            });
+
+        egui::Window::new("Code Editor")
+            .resizable(true)
+            .default_size(ctx.available_rect().size() * egui::vec2(0.5, 0.5))
+            .default_pos(ctx.available_rect().right_bottom())
+            .show(ctx, |ui| {
+                self.ui_code_editor(ui);
+            });
+
         egui::CentralPanel::default().show(ctx, |ui| {
             StripBuilder::new(ui)
                 .size(Size::exact(30.0))
@@ -82,34 +97,8 @@ impl eframe::App for MainApp {
                             ui.heading("Vector Graphics Visualizer");
                         });
                     });
-                    strip.strip(|builder| {
-                        builder
-                            .size(Size::relative(0.5))
-                            .size(Size::relative(0.5))
-                            .horizontal(|mut strip| {
-                                strip.cell(|ui| {
-                                    self.ui_visualizer(ui);
-                                });
-                                strip.strip(|builder| {
-                                    builder
-                                        .size(Size::exact(180.0))
-                                        .size(Size::exact(30.0))
-                                        .size(Size::remainder())
-                                        .vertical(|mut strip| {
-                                            strip.cell(|ui| {
-                                                self.ui_options_panel(ui);
-                                            });
-                                            strip.cell(|ui| {
-                                                ui.vertical_centered(|ui| {
-                                                    ui.heading("Code");
-                                                });
-                                            });
-                                            strip.cell(|ui| {
-                                                self.ui_code_editor(ui);
-                                            });
-                                        });
-                                })
-                            });
+                    strip.cell(|ui| {
+                        self.ui_visualizer(ui);
                     });
                     strip.cell(|ui| {
                         self.ui_toast_bar(ui);
@@ -154,8 +143,8 @@ impl MainApp {
                         &mut self.params.vis_progress,
                         0..=self.params.vis_progress_max,
                     )
-                    .text("Progress")
-                    .show_value(true),
+                        .text("Progress")
+                        .show_value(true),
                 );
             });
             StripBuilder::new(ui)
@@ -186,8 +175,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[0][0],
                                                         -5.0..=5.0,
                                                     )
-                                                    .text("m00")
-                                                    .show_value(true),
+                                                        .text("m00")
+                                                        .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -197,8 +186,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[0][1],
                                                         -5.0..=5.0,
                                                     )
-                                                    .text("m01")
-                                                    .show_value(true),
+                                                        .text("m01")
+                                                        .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -208,8 +197,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[0][2],
                                                         -500.0..=500.0,
                                                     )
-                                                    .text("m02")
-                                                    .show_value(true),
+                                                        .text("m02")
+                                                        .show_value(true),
                                                 );
                                             });
                                         });
@@ -227,8 +216,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[1][0],
                                                         -5.0..=5.0,
                                                     )
-                                                    .text("m10")
-                                                    .show_value(true),
+                                                        .text("m10")
+                                                        .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -238,8 +227,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[1][1],
                                                         -5.0..=5.0,
                                                     )
-                                                    .text("m11")
-                                                    .show_value(true),
+                                                        .text("m11")
+                                                        .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -249,8 +238,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[1][2],
                                                         -500.0..=500.0,
                                                     )
-                                                    .text("m12")
-                                                    .show_value(true),
+                                                        .text("m12")
+                                                        .show_value(true),
                                                 );
                                             });
                                         });
@@ -268,8 +257,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[2][0],
                                                         -5.0..=5.0,
                                                     )
-                                                    .text("m20")
-                                                    .show_value(true),
+                                                        .text("m20")
+                                                        .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -279,8 +268,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[2][1],
                                                         -5.0..=5.0,
                                                     )
-                                                    .text("m21")
-                                                    .show_value(true),
+                                                        .text("m21")
+                                                        .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -290,8 +279,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[2][2],
                                                         -500.0..=500.0,
                                                     )
-                                                    .text("m22")
-                                                    .show_value(true),
+                                                        .text("m22")
+                                                        .show_value(true),
                                                 );
                                             });
                                         });
