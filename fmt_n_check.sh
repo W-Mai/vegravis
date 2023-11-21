@@ -7,7 +7,11 @@ set -e
 
 # Format the codebase.
 echo "Formatting the codebase..."
-cargo fmt --all -- --check
+if [ "$1" = "all" ]; then
+    cargo fmt --all
+else
+    cargo fmt --all -- --check
+fi
 
 # Check the codebase for errors.
 echo "Checking the codebase for errors..."
