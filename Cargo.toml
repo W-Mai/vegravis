@@ -17,11 +17,19 @@ levenshtein = "*"
 dyn-clone = "1.0.16"
 
 # native:
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+[target.'cfg(all(not(target_arch = "wasm32"), platform = "macos"))'.dependencies]
 eframe = { version = "0.23.0", default-features = false, features = [
     "__screenshot",
     "default_fonts",
     "wgpu",
+] }
+env_logger = "0.10"
+
+[target.'cfg(all(not(target_arch = "wasm32"), not(platform = "macos")))'.dependencies]
+eframe = { version = "0.23.0", default-features = false, features = [
+    "__screenshot",
+    "default_fonts",
+    "glow",
 ] }
 env_logger = "0.10"
 
