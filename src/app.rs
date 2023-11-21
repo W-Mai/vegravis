@@ -73,7 +73,7 @@ impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::Window::new("Options")
             .fixed_size([600.0, 200.0])
-            .default_pos(ctx.available_rect().right_top())
+            .default_pos(ctx.available_rect().right_top() + egui::vec2(0.0, 30.0))
             .show(ctx, |ui| {
                 self.ui_options_panel(ui);
             });
@@ -86,17 +86,14 @@ impl eframe::App for MainApp {
                 self.ui_code_editor(ui);
             });
 
+        egui::TopBottomPanel::top("top").show(ctx, |ui| {
+            self.ui_about(ui);
+        });
         egui::CentralPanel::default().show(ctx, |ui| {
             StripBuilder::new(ui)
-                .size(Size::exact(30.0))
                 .size(Size::remainder())
                 .size(Size::exact(30.0))
                 .vertical(|mut strip| {
-                    strip.cell(|ui| {
-                        ui.vertical_centered(|ui| {
-                            ui.heading("Vector Graphics Visualizer");
-                        });
-                    });
                     strip.cell(|ui| {
                         self.ui_visualizer(ui);
                     });
@@ -340,5 +337,19 @@ impl MainApp {
             self.params.show_inter_dash,
             self.params.colorful_block,
         );
+    }
+
+    fn ui_about(&mut self, ui: &mut egui::Ui) {
+        const VERSION: &str = env!("CARGO_PKG_VERSION");
+        use egui::special_emojis::GITHUB;
+        ui.horizontal_wrapped(|ui| {
+            ui.heading("Vector Graphics Visualizer");
+            ui.separator();
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(format!("Version: {VERSION}"));
+                ui.hyperlink_to("🌐Web Version", env!("CARGO_PKG_HOMEPAGE"));
+                ui.hyperlink_to(format!("{GITHUB} vegravis on GitHub"), "https://w-mai");
+            });
+        });
     }
 }
