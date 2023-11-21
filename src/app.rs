@@ -140,8 +140,8 @@ impl MainApp {
                         &mut self.params.vis_progress,
                         0..=self.params.vis_progress_max,
                     )
-                        .text("Progress")
-                        .show_value(true),
+                    .text("Progress")
+                    .show_value(true),
                 );
             });
             StripBuilder::new(ui)
@@ -172,8 +172,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[0][0],
                                                         -5.0..=5.0,
                                                     )
-                                                        .text("m00")
-                                                        .show_value(true),
+                                                    .text("m00")
+                                                    .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -183,8 +183,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[0][1],
                                                         -5.0..=5.0,
                                                     )
-                                                        .text("m01")
-                                                        .show_value(true),
+                                                    .text("m01")
+                                                    .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -194,8 +194,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[0][2],
                                                         -500.0..=500.0,
                                                     )
-                                                        .text("m02")
-                                                        .show_value(true),
+                                                    .text("m02")
+                                                    .show_value(true),
                                                 );
                                             });
                                         });
@@ -213,8 +213,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[1][0],
                                                         -5.0..=5.0,
                                                     )
-                                                        .text("m10")
-                                                        .show_value(true),
+                                                    .text("m10")
+                                                    .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -224,8 +224,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[1][1],
                                                         -5.0..=5.0,
                                                     )
-                                                        .text("m11")
-                                                        .show_value(true),
+                                                    .text("m11")
+                                                    .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -235,8 +235,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[1][2],
                                                         -500.0..=500.0,
                                                     )
-                                                        .text("m12")
-                                                        .show_value(true),
+                                                    .text("m12")
+                                                    .show_value(true),
                                                 );
                                             });
                                         });
@@ -254,8 +254,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[2][0],
                                                         -5.0..=5.0,
                                                     )
-                                                        .text("m20")
-                                                        .show_value(true),
+                                                    .text("m20")
+                                                    .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -265,8 +265,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[2][1],
                                                         -5.0..=5.0,
                                                     )
-                                                        .text("m21")
-                                                        .show_value(true),
+                                                    .text("m21")
+                                                    .show_value(true),
                                                 );
                                             });
                                             strip.cell(|ui| {
@@ -276,8 +276,8 @@ impl MainApp {
                                                         &mut self.params.trans_matrix[2][2],
                                                         -500.0..=500.0,
                                                     )
-                                                        .text("m22")
-                                                        .show_value(true),
+                                                    .text("m22")
+                                                    .show_value(true),
                                                 );
                                             });
                                         });
