@@ -38,8 +38,8 @@ impl Default for MainAppParams {
             vis_progress: 0,
             vis_progress_max: 0,
             lcd_coords: false,
-            show_inter_dash: false,
-            colorful_block: false,
+            show_inter_dash: true,
+            colorful_block: true,
             trans_matrix: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], // Identity matrix
         }
     }
