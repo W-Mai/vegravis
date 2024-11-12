@@ -24,6 +24,10 @@ impl IVisualizer for CommonVecVisualizer {
         colorful_block: bool,
         lcd_coords: bool,
     ) {
+        let mut trans_matrix = self.t;
+        if lcd_coords {
+            trans_matrix[1][1] = trans_matrix[1][1].neg();
+        }
         let plot = Plot::new("plot")
             .data_aspect(1.0)
             .y_axis_formatter(move |mk, _range| {
@@ -42,7 +46,7 @@ impl IVisualizer for CommonVecVisualizer {
                 }
                 let points = points
                     .into_iter()
-                    .map(|v| v.matrix(self.t).cast())
+                    .map(|v| v.matrix(trans_matrix).cast())
                     .collect::<Vec<VecLineData>>();
                 let curr_line_start = *points.first().unwrap();
                 if !last_line_end.is_same(&curr_line_start as &dyn IVisData) && show_inter_dash {
