@@ -149,8 +149,8 @@ struct CommonOpCUBI;
 struct CommonOpEND;
 
 impl ICommandDescription for CommonOpMOVE {
-    fn name(&self) -> &'static str {
-        "MOVE"
+    fn name(&self) -> Vec<&str> {
+        ["MOVE"].into()
     }
 
     fn argc(&self) -> usize {
@@ -171,8 +171,8 @@ impl ICommandDescription for CommonOpMOVE {
 }
 
 impl ICommandDescription for CommonOpLINE {
-    fn name(&self) -> &'static str {
-        "LINE"
+    fn name(&self) -> Vec<&str> {
+        ["LINE"].into()
     }
 
     fn argc(&self) -> usize {
@@ -196,8 +196,8 @@ impl ICommandDescription for CommonOpLINE {
 }
 
 impl ICommandDescription for CommonOpQUAD {
-    fn name(&self) -> &'static str {
-        "QUAD"
+    fn name(&self) -> Vec<&str> {
+        ["QUAD"].into()
     }
 
     fn argc(&self) -> usize {
@@ -231,8 +231,8 @@ impl ICommandDescription for CommonOpQUAD {
 }
 
 impl ICommandDescription for CommonOpCUBI {
-    fn name(&self) -> &'static str {
-        "CUBI"
+    fn name(&self) -> Vec<&str> {
+        ["CUBI", "CUBIC"].into()
     }
 
     fn argc(&self) -> usize {
@@ -274,8 +274,8 @@ impl ICommandDescription for CommonOpCUBI {
 }
 
 impl ICommandDescription for CommonOpEND {
-    fn name(&self) -> &'static str {
-        "END"
+    fn name(&self) -> Vec<&str> {
+        ["END", "CLOSE"].into()
     }
 
     fn argc(&self) -> usize {

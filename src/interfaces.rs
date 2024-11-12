@@ -9,7 +9,7 @@ use std::ops::Range;
 use std::rc::Rc;
 
 pub trait ICommandDescription {
-    fn name(&self) -> &'static str;
+    fn name(&self) -> Vec<&str>;
     fn argc(&self) -> usize;
 
     fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData>;
@@ -35,7 +35,7 @@ impl Command {
 
 impl Debug for Command {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.dsc.name())
+        write!(f, "{:?}", self.dsc.name())
     }
 }
 
@@ -73,7 +73,7 @@ pub trait ICommandSyntax {
         let keywords = self
             .formats()
             .iter()
-            .map(|cmd| cmd.name())
+            .flat_map(|cmd| cmd.name())
             .collect::<BTreeSet<&str>>();
         let types = BTreeSet::new();
         let special = BTreeSet::new();
@@ -99,7 +99,7 @@ pub trait ICommandSyntax {
         };
         let cmd = cmd.as_str();
         for desc in self.formats() {
-            if desc.name() == cmd {
+            if desc.name().contains(&cmd) {
                 return Ok(Command {
                     dsc: desc,
                     argv: Rc::new(vec![]),
@@ -108,7 +108,9 @@ pub trait ICommandSyntax {
         }
         let mut dists = vec![];
         for desc in self.formats() {
-            dists.push((levenshtein(cmd, desc.name()), desc.name()));
+            for name in desc.name() {
+                dists.push((levenshtein(cmd, name), name));
+            }
         }
         dists.sort_by(|a, b| a.0.cmp(&b.0));
         let mut dists = dists.into_iter();
