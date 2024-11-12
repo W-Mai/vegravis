@@ -26,7 +26,9 @@ impl IVisualizer for CommonVecVisualizer {
     ) {
         let mut trans_matrix = self.t;
         if lcd_coords {
+            trans_matrix[0][1] = trans_matrix[0][1].neg();
             trans_matrix[1][1] = trans_matrix[1][1].neg();
+            trans_matrix[2][1] = trans_matrix[2][1].neg();
         }
         let plot = Plot::new("plot")
             .data_aspect(1.0)
