@@ -59,6 +59,7 @@ impl IVisData for VecLineData {
 struct GenerateCtx {
     grouping: bool,
     cursor: PlotPoint,
+    local_trans: Vec<[[f64; 3]; 3]>,
 }
 
 #[derive(Debug, Clone)]
@@ -81,6 +82,7 @@ impl IVisDataGenerator for VecLineGen {
         let mut gen_ctx = AnyData::new(GenerateCtx {
             grouping: false,
             cursor: PlotPoint::new(0.0, 0.0),
+            local_trans: vec![],
         });
         let mut points_total = vec![];
         let mut points: Vec<Box<dyn IVisData>> = vec![];
@@ -147,6 +149,10 @@ struct CommonOpQUAD;
 struct CommonOpCUBI;
 
 struct CommonOpEND;
+
+struct CommonOpPushTrans;
+
+struct CommonOpPopTrans;
 
 impl ICommandDescription for CommonOpMOVE {
     fn name(&self) -> Vec<&str> {
@@ -273,6 +279,60 @@ impl ICommandDescription for CommonOpCUBI {
     }
 }
 
+impl ICommandDescription for CommonOpPushTrans {
+    fn name(&self) -> Vec<&str> {
+        ["PUSH_TRANS"].into()
+    }
+
+    fn argc(&self) -> usize {
+        9
+    }
+
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let trans_matrix: [[f64; 3]; 3] = [
+            [
+                *argv[0].cast_ref(),
+                *argv[1].cast_ref(),
+                *argv[2].cast_ref(),
+            ],
+            [
+                *argv[3].cast_ref(),
+                *argv[4].cast_ref(),
+                *argv[5].cast_ref(),
+            ],
+            [
+                *argv[6].cast_ref(),
+                *argv[7].cast_ref(),
+                *argv[8].cast_ref(),
+            ],
+        ];
+
+        ctx.local_trans.push(trans_matrix);
+
+        vec![]
+    }
+}
+
+impl ICommandDescription for CommonOpPopTrans {
+    fn name(&self) -> Vec<&str> {
+        ["POP_TRANS"].into()
+    }
+
+    fn argc(&self) -> usize {
+        0
+    }
+
+    fn operate(&self, ctx: &mut AnyData, _argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        if ctx.local_trans.is_empty() {
+            return vec![];
+        }
+        ctx.local_trans.pop();
+        vec![]
+    }
+}
+
 impl ICommandDescription for CommonOpEND {
     fn name(&self) -> Vec<&str> {
         ["END", "CLOSE"].into()
@@ -299,6 +359,8 @@ impl ICommandSyntax for CommonVecOpSyntax {
             &CommonOpQUAD {},
             &CommonOpCUBI {},
             &CommonOpEND {},
+            &CommonOpPushTrans {},
+            &CommonOpPopTrans {},
         ]
     }
 }
