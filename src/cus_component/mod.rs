@@ -14,7 +14,8 @@ fn toggle_ui(ui: &mut egui::Ui, label: impl Into<RichText>, on: &mut bool) -> eg
     }
     let text = label.into();
     let text = text.text();
-    response.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Checkbox, *on, text));
+    response
+        .widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Checkbox, true, *on, text));
 
     if ui.is_rect_visible(rect) {
         ui.horizontal(|ui| {

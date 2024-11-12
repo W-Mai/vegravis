@@ -343,7 +343,7 @@ impl MainApp {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
         use egui::special_emojis::GITHUB;
         ui.horizontal_wrapped(|ui| {
-            egui::widgets::global_dark_light_mode_switch(ui);
+            egui::widgets::global_theme_preference_switch(ui);
             ui.separator();
             ui.heading("Vector Graphics Visualizer");
             ui.separator();

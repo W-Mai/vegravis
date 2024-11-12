@@ -15,7 +15,7 @@ impl ICodeEditor for CodeEditor {
             .with_theme(ColorTheme::SONOKAI)
             .with_syntax(format.syntax())
             .with_numlines(true)
-            .show(ui, code.cast_mut())
+            .show(ui, code.cast_mut::<String>())
             .response
     }
 }

@@ -10,10 +10,10 @@ authors = ["W-Mai", "Benign X"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ecolor = "0.24.0"
-egui_plot = "0.24.0"
-egui_extras = "0.24.0"
-egui_code_editor = "0.1.9"
+ecolor = "0.29.1"
+egui_plot = "0.29.0"
+egui_extras = "0.29.1"
+egui_code_editor = "0.2.10"
 
 log = "0.4.19"
 
@@ -23,24 +23,24 @@ dyn-clone = "1.0.16"
 
 # native:
 [target.'cfg(all(not(target_arch = "wasm32"), platform = "macos"))'.dependencies]
-eframe = { version = "0.24.0", default-features = false, features = [
+eframe = { version = "0.29.1", default-features = false, features = [
     "__screenshot",
     "default_fonts",
     "wgpu",
 ] }
-env_logger = "0.10"
+env_logger = "0.11.5"
 
 [target.'cfg(all(not(target_arch = "wasm32"), not(platform = "macos")))'.dependencies]
-eframe = { version = "0.24.0", default-features = false, features = [
+eframe = { version = "0.29.1", default-features = false, features = [
     "__screenshot",
     "default_fonts",
     "glow",
 ] }
-env_logger = "0.10"
+env_logger = "0.11.5"
 
 # web:
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-eframe = { version = "0.24.0", default-features = false, features = [
+eframe = { version = "0.29.1", default-features = false, features = [
     "__screenshot",
     "default_fonts",
     "glow",

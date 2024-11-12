@@ -15,6 +15,7 @@ enum CommentType {
     MultiLineEnd,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 enum TokenValue {
     Ident(String),

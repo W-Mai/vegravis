@@ -13,7 +13,7 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "Vector Graphics Visualizer",
         options,
-        Box::new(|_cc| Box::<MainApp>::default()),
+        Box::new(|_cc| Ok(Box::<MainApp>::default())),
     )
 }
 

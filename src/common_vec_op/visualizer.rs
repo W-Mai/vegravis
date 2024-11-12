@@ -4,7 +4,6 @@ use crate::COLOR_PALETTE;
 use eframe::egui;
 use eframe::egui::{Stroke, Ui};
 use egui_plot::{Line, LineStyle, Plot};
-use std::ops::RangeInclusive;
 
 pub struct CommonVecVisualizer {
     t: [[f64; 3]; 3],
@@ -27,12 +26,8 @@ impl IVisualizer for CommonVecVisualizer {
 
         let plot = Plot::new("plot")
             .data_aspect(1.0)
-            .x_axis_formatter(move |x: f64, _ticks: usize, _range: &RangeInclusive<f64>| {
-                format!("{:.0}", a * x + c)
-            })
-            .y_axis_formatter(move |y: f64, _ticks: usize, _range: &RangeInclusive<f64>| {
-                format!("{:.0}", b * y + d)
-            });
+            .x_axis_formatter(move |mk, _range| format!("{:.0}", a * mk.value + c))
+            .y_axis_formatter(move |mk, _range| format!("{:.0}", b * mk.value + d));
         plot.show(ui, |plot_ui| {
             let lines = input;
             if lines.is_empty() {

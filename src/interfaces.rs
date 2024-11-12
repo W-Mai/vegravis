@@ -3,7 +3,7 @@ use dyn_clone::DynClone;
 use eframe::egui;
 use egui_code_editor::Syntax;
 use levenshtein::levenshtein;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::fmt::{Debug, Formatter};
 use std::ops::Range;
 use std::rc::Rc;
@@ -74,15 +74,16 @@ pub trait ICommandSyntax {
             .formats()
             .iter()
             .map(|cmd| cmd.name())
-            .collect::<HashSet<&str>>();
-        let types = HashSet::new();
-        let special = HashSet::new();
+            .collect::<BTreeSet<&str>>();
+        let types = BTreeSet::new();
+        let special = BTreeSet::new();
 
         Syntax {
             language: self.name(),
             case_sensitive: self.case_sensitive(),
             comment: "//",
             comment_multiline: ["/*", "*/"],
+            hyperlinks: Default::default(),
             keywords,
             types,
             special,
@@ -125,6 +126,7 @@ pub trait IParser<'a> {
     fn parse(&'a mut self) -> Result<&'a mut dyn IVisDataGenerator, ParseError>;
 }
 
+#[allow(dead_code)]
 pub trait IEncoder {
     fn encode(&self, input: &str) -> String;
 }
