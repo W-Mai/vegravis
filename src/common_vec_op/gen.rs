@@ -327,6 +327,20 @@ impl ICommandDescription for CommonOpCUBI {
     }
 }
 
+impl ICommandDescription for CommonOpEND {
+    fn name(&self) -> Vec<&str> {
+        ["END", "CLOSE"].into()
+    }
+
+    fn argc(&self) -> usize {
+        0
+    }
+
+    fn operate(&self, _ctx: &mut AnyData, _argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        vec![]
+    }
+}
+
 impl ICommandDescription for CommonOpPushTrans {
     fn name(&self) -> Vec<&str> {
         ["PUSH_TRANS"].into()
@@ -377,20 +391,6 @@ impl ICommandDescription for CommonOpPopTrans {
             return vec![];
         }
         ctx.local_trans.pop();
-        vec![]
-    }
-}
-
-impl ICommandDescription for CommonOpEND {
-    fn name(&self) -> Vec<&str> {
-        ["END", "CLOSE"].into()
-    }
-
-    fn argc(&self) -> usize {
-        0
-    }
-
-    fn operate(&self, _ctx: &mut AnyData, _argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         vec![]
     }
 }
