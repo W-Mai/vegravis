@@ -171,6 +171,7 @@ pub trait IVisualizer {
         has_error: bool,
         show_inter_dash: bool,
         colorful_block: bool,
+        lcd_coords: bool,
     );
 
     fn transform(&mut self, matrix: [[f64; 3]; 3]);

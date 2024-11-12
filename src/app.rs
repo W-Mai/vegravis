@@ -293,9 +293,6 @@ impl MainApp {
     }
 
     fn ui_visualizer(&mut self, ui: &mut egui::Ui) {
-        if self.params.lcd_coords ^ self.cache.params.lcd_coords {
-            self.params.trans_matrix[1][1] *= -1.0;
-        }
         let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
 
         let mut has_error = false;
@@ -336,6 +333,7 @@ impl MainApp {
             has_error,
             self.params.show_inter_dash,
             self.params.colorful_block,
+            self.params.lcd_coords,
         );
     }
 

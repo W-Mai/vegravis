@@ -2,8 +2,9 @@ use crate::common_vec_op::VecLineData;
 use crate::interfaces::{IVisData, IVisualizer};
 use crate::COLOR_PALETTE;
 use eframe::egui;
-use eframe::egui::{Stroke, Ui};
+use eframe::egui::Stroke;
 use egui_plot::{Line, LineStyle, Plot};
+use std::ops::Neg;
 
 pub struct CommonVecVisualizer {
     t: [[f64; 3]; 3],
@@ -16,18 +17,18 @@ impl IVisualizer for CommonVecVisualizer {
 
     fn plot(
         &self,
-        ui: &mut Ui,
+        ui: &mut egui::Ui,
         input: Vec<Vec<Box<dyn IVisData>>>,
         has_error: bool,
         show_inter_dash: bool,
         colorful_block: bool,
+        lcd_coords: bool,
     ) {
-        let (a, b, c, d) = (self.t[0][0], self.t[1][1], self.t[0][2], self.t[1][2]);
-
         let plot = Plot::new("plot")
             .data_aspect(1.0)
-            .x_axis_formatter(move |mk, _range| format!("{:.0}", a * mk.value + c))
-            .y_axis_formatter(move |mk, _range| format!("{:.0}", b * mk.value + d));
+            .y_axis_formatter(move |mk, _range| {
+                format!("{:.0}", if lcd_coords { mk.value.neg() } else { mk.value })
+            });
         plot.show(ui, |plot_ui| {
             let lines = input;
             if lines.is_empty() {
