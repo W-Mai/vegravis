@@ -159,6 +159,7 @@ pub trait IVisData: DynClone {
 
 dyn_clone::clone_trait_object!(IVisData);
 
+#[allow(dead_code)]
 pub trait IVisualizer {
     fn new(transform: [[f64; 3]; 3]) -> Self;
     fn plot(
