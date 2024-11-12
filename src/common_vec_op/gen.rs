@@ -8,6 +8,28 @@ use std::fmt::Debug;
 use std::ops::Range;
 use std::rc::Rc;
 
+fn calc_trans_stack(trans_stack: &Vec<[[f64; 3]; 3]>) -> [[f64; 3]; 3] {
+    fn mul_matrix(a: &[[f64; 3]; 3], b: &[[f64; 3]; 3]) -> [[f64; 3]; 3] {
+        let mut result = [[0.0; 3]; 3];
+
+        for i in 0..3 {
+            for j in 0..3 {
+                for k in 0..3 {
+                    result[i][j] += a[i][k] * b[k][j];
+                }
+            }
+        }
+
+        result
+    }
+
+    let mut res = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
+    for i in trans_stack {
+        res = mul_matrix(&res, i);
+    }
+    res
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct VecLineData {
     x: f64,
@@ -60,6 +82,7 @@ struct GenerateCtx {
     grouping: bool,
     cursor: PlotPoint,
     local_trans: Vec<[[f64; 3]; 3]>,
+    current_trans: [[f64; 3]; 3],
 }
 
 #[derive(Debug, Clone)]
@@ -83,6 +106,7 @@ impl IVisDataGenerator for VecLineGen {
             grouping: false,
             cursor: PlotPoint::new(0.0, 0.0),
             local_trans: vec![],
+            current_trans: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
         });
         let mut points_total = vec![];
         let mut points: Vec<Box<dyn IVisData>> = vec![];
@@ -166,16 +190,13 @@ impl ICommandDescription for CommonOpMOVE {
     fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         let ctx = ctx.cast_mut::<GenerateCtx>();
 
-        let current_matrix =
-            ctx.local_trans
-                .first()
-                .unwrap_or(&[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
+        let current_matrix = ctx.current_trans;
 
         let argv = argv
             .chunks(2)
             .map(|x| {
                 VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                    .matrix(*current_matrix)
+                    .matrix(current_matrix)
                     .cast::<VecLineData>()
             })
             .flat_map(|x| [x.x, x.y])
@@ -202,16 +223,13 @@ impl ICommandDescription for CommonOpLINE {
 
     fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         let ctx = ctx.cast_mut::<GenerateCtx>();
-        let current_matrix =
-            ctx.local_trans
-                .first()
-                .unwrap_or(&[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
+        let current_matrix = ctx.current_trans;
 
         let argv = argv
             .chunks(2)
             .map(|x| {
                 VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                    .matrix(*current_matrix)
+                    .matrix(current_matrix)
                     .cast::<VecLineData>()
             })
             .flat_map(|x| [x.x, x.y])
@@ -242,16 +260,13 @@ impl ICommandDescription for CommonOpQUAD {
 
     fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         let ctx = ctx.cast_mut::<GenerateCtx>();
-        let current_matrix =
-            ctx.local_trans
-                .first()
-                .unwrap_or(&[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
+        let current_matrix = ctx.current_trans;
 
         let argv = argv
             .chunks(2)
             .map(|x| {
                 VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                    .matrix(*current_matrix)
+                    .matrix(current_matrix)
                     .cast::<VecLineData>()
             })
             .flat_map(|x| [x.x, x.y])
@@ -287,16 +302,13 @@ impl ICommandDescription for CommonOpCUBI {
 
     fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         let ctx = ctx.cast_mut::<GenerateCtx>();
-        let current_matrix =
-            ctx.local_trans
-                .first()
-                .unwrap_or(&[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
+        let current_matrix = ctx.current_trans;
 
         let argv = argv
             .chunks(2)
             .map(|x| {
                 VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                    .matrix(*current_matrix)
+                    .matrix(current_matrix)
                     .cast::<VecLineData>()
             })
             .flat_map(|x| [x.x, x.y])
@@ -371,6 +383,7 @@ impl ICommandDescription for CommonOpPushTrans {
         ];
 
         ctx.local_trans.push(trans_matrix);
+        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
 
         vec![]
     }
@@ -391,6 +404,8 @@ impl ICommandDescription for CommonOpPopTrans {
             return vec![];
         }
         ctx.local_trans.pop();
+        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
+
         vec![]
     }
 }
