@@ -12,10 +12,10 @@ fn calc_trans_stack(trans_stack: &Vec<[[f64; 3]; 3]>) -> [[f64; 3]; 3] {
     fn mul_matrix(a: &[[f64; 3]; 3], b: &[[f64; 3]; 3]) -> [[f64; 3]; 3] {
         let mut result = [[0.0; 3]; 3];
 
-        for i in 0..3 {
+        for (i, iv) in a.iter().enumerate() {
             for j in 0..3 {
-                for k in 0..3 {
-                    result[i][j] += a[i][k] * b[k][j];
+                for (k, kv) in b.iter().enumerate() {
+                    result[i][j] += iv[k] * kv[j];
                 }
             }
         }
