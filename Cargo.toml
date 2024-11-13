@@ -3,10 +3,17 @@ name = "vegravis"
 version = "0.2.0"
 edition = "2021"
 homepage = "https://github.com/W-Mai/vegravis"
+repository = "https://github.com/W-Mai/vegravis"
 readme = "README.md"
 license-file = "LICENSE"
 description = "Vegravis is a vector graphics visualizer.It can visualize vector graphics on a canvas, and can also visualize vector graphics in other formats through conversion."
 authors = ["W-Mai", "Benign X"]
+
+[package.metadata.wix]
+upgrade-guid = "A450F613-B486-4556-8FD8-B60406F07E43"
+path-guid = "7FE22DC6-25EC-4DB4-B5BB-1BBEEFF659F1"
+license = false
+eula = false
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -56,3 +63,8 @@ opt-level = 2 # fast and small wasm
 # Optimize all dependencies even in debug builds:
 [profile.dev.package."*"]
 opt-level = 2
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
