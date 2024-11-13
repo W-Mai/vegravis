@@ -4,6 +4,8 @@ version = "0.2.0"
 edition = "2021"
 homepage = "https://github.com/W-Mai/vegravis"
 readme = "README.md"
+license-file = "LICENSE"
+description = "Vegravis is a vector graphics visualizer.It can visualize vector graphics on a canvas, and can also visualize vector graphics in other formats through conversion."
 authors = ["W-Mai", "Benign X"]
 
 
@@ -17,7 +19,7 @@ egui_code_editor = "0.2.10"
 
 log = "0.4.19"
 
-levenshtein = "*"
+levenshtein = "1.0.5"
 
 dyn-clone = "1.0.16"
 web-sys = "0.3.72"
