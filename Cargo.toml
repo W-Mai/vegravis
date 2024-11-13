@@ -1,6 +1,6 @@
 [package]
 name = "vegravis"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 homepage = "https://github.com/W-Mai/vegravis"
 repository = "https://github.com/W-Mai/vegravis"
