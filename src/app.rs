@@ -6,12 +6,15 @@ use crate::cus_component::{toggle, CodeEditor};
 use crate::interfaces::{
     ICodeEditor, IParser, IVisData, IVisDataGenerator, IVisualizer, ParseError,
 };
+use bincode::{Decode, Encode};
 use eframe::{egui, Storage};
 use egui_extras::{Size, StripBuilder};
 use log::error;
-use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use std::vec;
+
+#[cfg(target_arch = "wasm32")]
+use base64::prelude::*;
 
 const DEFAULT_CODE: &str = include_str!("default_code");
 
@@ -25,11 +28,11 @@ struct MainAppCache {
     transfer_data: TransferData,
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Decode, Encode)]
+
 struct MainAppParams {
     vis_progress: i64,
     vis_progress_max: i64,
-
     lcd_coords: bool,
     show_inter_dash: bool,
     colorful_block: bool,
@@ -37,7 +40,7 @@ struct MainAppParams {
     trans_matrix: [[f64; 3]; 3],
 }
 
-#[derive(Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Default, Decode, Encode)]
 struct TransferData {
     code: String,
     params: MainAppParams,
@@ -399,12 +402,24 @@ impl MainApp {
     fn load_from_url_search(&mut self) {
         use eframe::web::web_location;
         let location = web_location();
-        if let Ok(t) = serde_qs::from_str::<TransferData>(&location.query) {
-            self.code = AnyData::new(t.code);
-            self.params = t.params;
-        } else {
-            error!("Invalid query string");
+        let query = &location.query;
+        if query.is_empty() {
+            return;
         }
+
+        if let Ok(data) = BASE64_URL_SAFE_NO_PAD.decode(query) {
+            let config = bincode::config::standard();
+            if let Ok((t, _s)) =
+                bincode::decode_from_slice(&data, config) as Result<(TransferData, _), _>
+            {
+                self.code = AnyData::new(t.code);
+                self.params = t.params;
+
+                return;
+            }
+        }
+
+        error!("Invalid query string");
     }
 
     fn save_to_url_search(&mut self) {
@@ -420,12 +435,16 @@ impl MainApp {
 
         self.cache.transfer_data = transfer_data;
 
-        let mut t = serde_qs::to_string(&self.cache.transfer_data).unwrap();
-        t.insert(0, '?');
+        let config = bincode::config::standard();
+        if let Ok(data) = bincode::encode_to_vec(&self.cache.transfer_data, config) {
+            let mut t = BASE64_URL_SAFE_NO_PAD.encode(data);
 
-        use eframe::wasm_bindgen::JsValue;
-        history
-            .push_state_with_url(&JsValue::NULL, "", Some(&t))
-            .unwrap()
+            t.insert(0, '?');
+
+            use eframe::wasm_bindgen::JsValue;
+            history
+                .push_state_with_url(&JsValue::NULL, "", Some(&t))
+                .unwrap()
+        }
     }
 }
