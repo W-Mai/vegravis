@@ -29,7 +29,6 @@ struct MainAppCache {
 }
 
 #[derive(Clone, PartialEq, Decode, Encode)]
-
 struct MainAppParams {
     vis_progress: i64,
     vis_progress_max: i64,
@@ -43,7 +42,7 @@ struct MainAppParams {
 #[derive(Clone, PartialEq, Default, Decode, Encode)]
 struct TransferData {
     code: String,
-    params: MainAppParams,
+    params: Option<MainAppParams>,
 }
 
 impl Default for MainAppParams {
@@ -413,7 +412,7 @@ impl MainApp {
                 bincode::decode_from_slice(&data, config) as Result<(TransferData, _), _>
             {
                 self.code = AnyData::new(t.code);
-                self.params = t.params;
+                self.params = t.params.unwrap_or_default();
 
                 return;
             }
@@ -426,7 +425,7 @@ impl MainApp {
         let history = web_sys::window().unwrap().history().unwrap();
         let transfer_data = TransferData {
             code: self.code.cast_ref::<String>().clone(),
-            params: self.params.clone(),
+            params: Some(self.params.clone()),
         };
 
         if self.cache.transfer_data == transfer_data {
