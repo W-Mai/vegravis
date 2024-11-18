@@ -10,6 +10,7 @@ use bincode::{Decode, Encode};
 use eframe::{egui, Storage};
 use egui_extras::{Size, StripBuilder};
 use log::error;
+use std::collections::BTreeSet;
 use std::time::Duration;
 use std::vec;
 
@@ -17,6 +18,8 @@ use std::vec;
 use base64::prelude::*;
 
 const DEFAULT_CODE: &str = include_str!("default_code");
+
+const WINDOW_NAMES: [&str; 2] = ["⚙options", "📄code"];
 
 struct MainAppCache {
     code: AnyData,
@@ -68,6 +71,9 @@ pub struct MainApp {
 
     #[cfg(target_arch = "wasm32")]
     is_loaded_from_url: bool,
+
+    /// panel status
+    panel_status: BTreeSet<String>,
 }
 
 impl Default for MainApp {
@@ -87,6 +93,7 @@ impl Default for MainApp {
 
             #[cfg(target_arch = "wasm32")]
             is_loaded_from_url: false,
+            panel_status: Default::default(),
         }
     }
 }
@@ -99,24 +106,33 @@ impl eframe::App for MainApp {
             self.is_loaded_from_url = true;
         }
 
+        egui::TopBottomPanel::top("top").show(ctx, |ui| {
+            self.ui_about(ui);
+        });
+        egui::SidePanel::left("Panels")
+            .resizable(false)
+            .default_width(80.0)
+            .show(ctx, |ui| {
+                self.ui_panels(ui);
+            });
+
         egui::Window::new("Options")
+            .title_bar(false)
+            .open(&mut self.panel_status.contains(WINDOW_NAMES[0]))
             .fixed_size([600.0, 200.0])
-            .default_pos(ctx.available_rect().right_top() + egui::vec2(0.0, 30.0))
+            .fixed_pos(ctx.available_rect().left_top())
+            .movable(false)
             .show(ctx, |ui| {
                 self.ui_options_panel(ui);
             });
 
-        egui::Window::new("Code Editor")
-            .resizable(true)
-            .default_size(ctx.available_rect().size() * egui::vec2(0.5, 0.5))
-            .default_pos(ctx.available_rect().right_bottom())
-            .show(ctx, |ui| {
+        egui::SidePanel::left("CodeEditor")
+            .resizable(false)
+            .exact_width(ctx.available_rect().width() / 2.0)
+            .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[1]), |ui| {
                 self.ui_code_editor(ui);
             });
 
-        egui::TopBottomPanel::top("top").show(ctx, |ui| {
-            self.ui_about(ui);
-        });
         egui::CentralPanel::default().show(ctx, |ui| {
             StripBuilder::new(ui)
                 .size(Size::remainder())
@@ -155,6 +171,22 @@ impl MainApp {
                     .color(egui::Color32::RED)
                     .text_style(egui::TextStyle::Monospace);
                 ui.label(rt).highlight();
+            });
+        });
+    }
+
+    fn ui_panels(&mut self, ui: &mut egui::Ui) {
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            ui.with_layout(egui::Layout::top_down_justified(egui::Align::LEFT), |ui| {
+                for name in WINDOW_NAMES {
+                    let mut is_open = self.panel_status.contains(name);
+                    ui.toggle_value(&mut is_open, name);
+                    if is_open {
+                        self.panel_status.insert(name.to_owned());
+                    } else {
+                        self.panel_status.remove(name);
+                    }
+                }
             });
         });
     }
