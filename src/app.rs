@@ -402,6 +402,8 @@ impl MainApp {
         if let Ok(t) = serde_qs::from_str::<TransferData>(&location.query) {
             self.code = AnyData::new(t.code);
             self.params = t.params;
+        } else {
+            error!("Invalid query string");
         }
     }
 
