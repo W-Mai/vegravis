@@ -20,6 +20,9 @@ struct MainAppCache {
     lines: Vec<Vec<Box<dyn IVisData>>>,
 
     params: MainAppParams,
+
+    #[cfg(target_arch = "wasm32")]
+    transfer_data: TransferData,
 }
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
@@ -34,7 +37,7 @@ struct MainAppParams {
     trans_matrix: [[f64; 3]; 3],
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Default, Serialize, Deserialize)]
 struct TransferData {
     code: String,
     params: MainAppParams,
@@ -60,6 +63,9 @@ pub struct MainApp {
     params: MainAppParams,
 
     cache: MainAppCache,
+
+    #[cfg(target_arch = "wasm32")]
+    is_loaded_from_url: bool,
 }
 
 impl Default for MainApp {
@@ -71,8 +77,14 @@ impl Default for MainApp {
                 code: AnyData::new("".to_owned()),
                 lines: vec![],
                 params: MainAppParams::default(),
+
+                #[cfg(target_arch = "wasm32")]
+                transfer_data: TransferData::default(),
             },
             error: None,
+
+            #[cfg(target_arch = "wasm32")]
+            is_loaded_from_url: false,
         }
     }
 }
@@ -80,7 +92,10 @@ impl Default for MainApp {
 impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         #[cfg(target_arch = "wasm32")]
-        self.load_from_url_search();
+        if self.is_loaded_from_url == false {
+            self.load_from_url_search();
+            self.is_loaded_from_url = true;
+        }
 
         egui::Window::new("Options")
             .fixed_size([600.0, 200.0])
@@ -392,11 +407,18 @@ impl MainApp {
 
     fn save_to_url_search(&mut self) {
         let history = web_sys::window().unwrap().history().unwrap();
-        let mut t = serde_qs::to_string(&TransferData {
+        let transfer_data = TransferData {
             code: self.code.cast_ref::<String>().clone(),
             params: self.params.clone(),
-        })
-        .unwrap();
+        };
+
+        if self.cache.transfer_data == transfer_data {
+            return;
+        }
+
+        self.cache.transfer_data = transfer_data;
+
+        let mut t = serde_qs::to_string(&self.cache.transfer_data).unwrap();
         t.insert(0, '?');
 
         use eframe::wasm_bindgen::JsValue;
