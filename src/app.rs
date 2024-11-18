@@ -6,9 +6,11 @@ use crate::cus_component::{toggle, CodeEditor};
 use crate::interfaces::{
     ICodeEditor, IParser, IVisData, IVisDataGenerator, IVisualizer, ParseError,
 };
-use eframe::egui;
+use eframe::{egui, Storage};
 use egui_extras::{Size, StripBuilder};
 use log::error;
+use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use std::vec;
 
 const DEFAULT_CODE: &str = include_str!("default_code");
@@ -20,7 +22,7 @@ struct MainAppCache {
     params: MainAppParams,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 struct MainAppParams {
     vis_progress: i64,
     vis_progress_max: i64,
@@ -30,6 +32,12 @@ struct MainAppParams {
     colorful_block: bool,
 
     trans_matrix: [[f64; 3]; 3],
+}
+
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
+struct TransferData {
+    code: String,
+    params: MainAppParams,
 }
 
 impl Default for MainAppParams {
@@ -71,6 +79,9 @@ impl Default for MainApp {
 
 impl eframe::App for MainApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        #[cfg(target_arch = "wasm32")]
+        self.load_from_url_search();
+
         egui::Window::new("Options")
             .fixed_size([600.0, 200.0])
             .default_pos(ctx.available_rect().right_top() + egui::vec2(0.0, 30.0))
@@ -102,6 +113,15 @@ impl eframe::App for MainApp {
                     });
                 });
         });
+    }
+
+    fn save(&mut self, _storage: &mut dyn Storage) {
+        #[cfg(target_arch = "wasm32")]
+        self.save_to_url_search();
+    }
+
+    fn auto_save_interval(&self) -> Duration {
+        Duration::from_millis(30)
     }
 }
 
@@ -356,5 +376,32 @@ impl MainApp {
                 });
             });
         });
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl MainApp {
+    fn load_from_url_search(&mut self) {
+        use eframe::web::web_location;
+        let location = web_location();
+        if let Ok(t) = serde_qs::from_str::<TransferData>(&location.query) {
+            self.code = AnyData::new(t.code);
+            self.params = t.params;
+        }
+    }
+
+    fn save_to_url_search(&mut self) {
+        let history = web_sys::window().unwrap().history().unwrap();
+        let mut t = serde_qs::to_string(&TransferData {
+            code: self.code.cast_ref::<String>().clone(),
+            params: self.params.clone(),
+        })
+        .unwrap();
+        t.insert(0, '?');
+
+        use eframe::wasm_bindgen::JsValue;
+        history
+            .push_state_with_url(&JsValue::NULL, "", Some(&t))
+            .unwrap()
     }
 }
