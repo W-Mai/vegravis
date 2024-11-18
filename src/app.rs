@@ -14,12 +14,11 @@ use std::collections::BTreeSet;
 use std::time::Duration;
 use std::vec;
 
-#[cfg(target_arch = "wasm32")]
 use base64::prelude::*;
 
 const DEFAULT_CODE: &str = include_str!("default_code");
 
-const WINDOW_NAMES: [&str; 2] = ["⚙options", "📄code"];
+const WINDOW_NAMES: [&str; 2] = ["⚙Options", "📄Code"];
 
 struct MainAppCache {
     code: AnyData,
@@ -117,7 +116,6 @@ impl eframe::App for MainApp {
             });
 
         egui::Window::new("Options")
-            .title_bar(false)
             .open(&mut self.panel_status.contains(WINDOW_NAMES[0]))
             .fixed_size([600.0, 200.0])
             .fixed_pos(ctx.available_rect().left_top())
@@ -358,6 +356,24 @@ impl MainApp {
     }
 
     fn ui_code_editor(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Code Editor");
+        ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
+            if ui.button("📋 Copy Code").clicked() {
+                ui.output_mut(|o| o.copied_text = self.code.cast_ref::<String>().clone());
+            }
+
+            if ui.button("🌐 Copy URL").clicked() {
+                let transfer_data = TransferData {
+                    code: self.code.cast_ref::<String>().clone(),
+                    params: Some(self.params.clone()),
+                };
+                let t = self.create_transfer_url(&transfer_data);
+                ui.output_mut(|o| o.copied_text = format!("https://w-mai.github.io/vegravis/{t}"));
+            }
+        });
+
+        ui.separator();
+
         CodeEditor {}.show(ui, &mut self.code, VecLineGen::default().command_syntax());
     }
 
@@ -428,6 +444,19 @@ impl MainApp {
     }
 }
 
+impl MainApp {
+    fn create_transfer_url(&self, transfer_data: &TransferData) -> String {
+        let config = bincode::config::standard();
+        if let Ok(data) = bincode::encode_to_vec(transfer_data, config) {
+            let mut t = BASE64_URL_SAFE_NO_PAD.encode(data);
+
+            t.insert(0, '?');
+            return t;
+        };
+        Default::default()
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 impl MainApp {
     fn load_from_url_search(&mut self) {
@@ -466,16 +495,14 @@ impl MainApp {
 
         self.cache.transfer_data = transfer_data;
 
-        let config = bincode::config::standard();
-        if let Ok(data) = bincode::encode_to_vec(&self.cache.transfer_data, config) {
-            let mut t = BASE64_URL_SAFE_NO_PAD.encode(data);
-
-            t.insert(0, '?');
-
-            use eframe::wasm_bindgen::JsValue;
-            history
-                .push_state_with_url(&JsValue::NULL, "", Some(&t))
-                .unwrap()
+        let t = self.create_transfer_url(&self.cache.transfer_data);
+        if t.is_empty() {
+            return;
         }
+
+        use eframe::wasm_bindgen::JsValue;
+        history
+            .push_state_with_url(&JsValue::NULL, "", Some(&t))
+            .unwrap()
     }
 }
