@@ -18,7 +18,7 @@ use base64::prelude::*;
 
 const DEFAULT_CODE: &str = include_str!("default_code");
 
-const WINDOW_NAMES: [&str; 2] = ["⚙Options", "📄Code"];
+const WINDOW_NAMES: [[&str; 2]; 2] = [["⚙", "Options"], ["📄", "Code"]];
 
 struct MainAppCache {
     code: AnyData,
@@ -72,6 +72,7 @@ pub struct MainApp {
     is_loaded_from_url: bool,
 
     /// panel status
+    side_panel_open: bool,
     panel_status: BTreeSet<String>,
 }
 
@@ -92,6 +93,7 @@ impl Default for MainApp {
 
             #[cfg(target_arch = "wasm32")]
             is_loaded_from_url: false,
+            side_panel_open: false,
             panel_status: Default::default(),
         }
     }
@@ -110,13 +112,13 @@ impl eframe::App for MainApp {
         });
         egui::SidePanel::left("Panels")
             .resizable(false)
-            .default_width(80.0)
+            .exact_width(if self.side_panel_open { 100.0 } else { 40.0 })
             .show(ctx, |ui| {
                 self.ui_panels(ui);
             });
 
         egui::Window::new("Options")
-            .open(&mut self.panel_status.contains(WINDOW_NAMES[0]))
+            .open(&mut self.panel_status.contains(WINDOW_NAMES[0][1]))
             .fixed_size([600.0, 200.0])
             .fixed_pos(ctx.available_rect().left_top())
             .movable(false)
@@ -127,7 +129,7 @@ impl eframe::App for MainApp {
         egui::SidePanel::left("CodeEditor")
             .resizable(false)
             .exact_width(ctx.available_rect().width() / 2.0)
-            .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[1]), |ui| {
+            .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[1][1]), |ui| {
                 self.ui_code_editor(ui);
             });
 
@@ -176,9 +178,23 @@ impl MainApp {
     fn ui_panels(&mut self, ui: &mut egui::Ui) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             ui.with_layout(egui::Layout::top_down_justified(egui::Align::LEFT), |ui| {
-                for name in WINDOW_NAMES {
+                let side_panel_icon = if self.side_panel_open {
+                    "👈 Collapse"
+                } else {
+                    "👉"
+                };
+                ui.toggle_value(&mut self.side_panel_open, side_panel_icon);
+                ui.separator();
+                for [icon, name] in WINDOW_NAMES {
                     let mut is_open = self.panel_status.contains(name);
-                    ui.toggle_value(&mut is_open, name);
+                    ui.toggle_value(
+                        &mut is_open,
+                        if self.side_panel_open {
+                            format!("{icon} {name}")
+                        } else {
+                            icon.to_owned()
+                        },
+                    );
                     if is_open {
                         self.panel_status.insert(name.to_owned());
                     } else {
