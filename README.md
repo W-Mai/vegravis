@@ -18,7 +18,8 @@
 </div>
 </div>
 
-<img src="snapshots/snapshot.png">
+<img src="snapshots/snapshot.png" alt="Snapshot">
+<img src="snapshots/snapshot_with_tr.png" alt="Snapshot With TransformResolver">
 
 ## Introduction
 
@@ -61,7 +62,10 @@ and you will get a cute Sakaban Turtle:
 ## Features
 
 - [x] Visualize vector graphics
+- [x] Responsive UI
 - [x] Support cross-platform (**Windows**, **Linux**, **MacOS**, **Web**)
+- [x] Support share code and options with URL
+- [x] Support and the linkage of [Transform Resolver](https://w-mai.github.io/TransformResolver)
 - [ ] Support multiple vector graphics formats
 - [ ] Support vector graphics editing
 - [ ] Support vector graphics animation

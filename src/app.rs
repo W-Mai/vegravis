@@ -121,8 +121,8 @@ impl eframe::App for MainApp {
         egui::Window::new("Options")
             .open(&mut self.panel_status.contains(WINDOW_NAMES[0][1]))
             .fixed_size([600.0, 200.0])
-            .fixed_pos(ctx.available_rect().left_top())
-            .movable(false)
+            .default_pos(ctx.available_rect().left_top())
+            .movable(true)
             .show(ctx, |ui| {
                 self.ui_options_panel(ui);
             });
