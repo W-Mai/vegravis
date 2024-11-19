@@ -127,12 +127,21 @@ impl eframe::App for MainApp {
                 self.ui_options_panel(ui);
             });
 
-        egui::SidePanel::left("CodeEditor")
-            .resizable(false)
-            .exact_width(ctx.available_rect().width() / 2.0)
-            .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[1][1]), |ui| {
-                self.ui_code_editor(ui);
-            });
+        if ctx.available_rect().aspect_ratio() < 1.0 {
+            egui::TopBottomPanel::bottom("CodeEditor")
+                .resizable(false)
+                .exact_height(ctx.available_rect().height() / 2.0)
+                .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[1][1]), |ui| {
+                    self.ui_code_editor(ui);
+                });
+        } else {
+            egui::SidePanel::left("CodeEditor")
+                .resizable(false)
+                .exact_width(ctx.available_rect().width() / 2.0)
+                .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[1][1]), |ui| {
+                    self.ui_code_editor(ui);
+                });
+        }
 
         egui::CentralPanel::default().show(ctx, |ui| {
             self.ui_visualizer(ui);
