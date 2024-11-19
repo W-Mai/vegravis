@@ -110,6 +110,9 @@ impl eframe::App for MainApp {
         egui::TopBottomPanel::top("top").show(ctx, |ui| {
             self.ui_about(ui);
         });
+        egui::TopBottomPanel::bottom("bottom").show(ctx, |ui| {
+            self.ui_toast_bar(ui);
+        });
         egui::SidePanel::left("Panels")
             .resizable(false)
             .exact_width(if self.side_panel_open { 100.0 } else { 40.0 })
@@ -134,17 +137,7 @@ impl eframe::App for MainApp {
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            StripBuilder::new(ui)
-                .size(Size::remainder())
-                .size(Size::exact(30.0))
-                .vertical(|mut strip| {
-                    strip.cell(|ui| {
-                        self.ui_visualizer(ui);
-                    });
-                    strip.cell(|ui| {
-                        self.ui_toast_bar(ui);
-                    });
-                });
+            self.ui_visualizer(ui);
         });
     }
 
