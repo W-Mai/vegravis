@@ -1,5 +1,3 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
-
 use crate::any_data::AnyData;
 use crate::common_vec_op::{CodeParser, CommonVecVisualizer, VecLineGen};
 use crate::cus_component::{toggle, CodeEditor};
