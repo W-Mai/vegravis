@@ -569,10 +569,14 @@ impl MainApp {
 
     fn ui_code_editor(&mut self, ui: &mut egui::Ui) {
         ui.heading("Code Editor");
+
+        ui.separator();
+
         ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
             if ui.button("📋 Copy Code").clicked() {
                 ui.output_mut(|o| o.copied_text = self.code.cast_ref::<String>().clone());
             }
+            ui.shrink_height_to_current();
 
             if ui.button("🌐 Copy URL").clicked() {
                 let transfer_data = TransferData {
