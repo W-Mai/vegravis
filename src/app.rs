@@ -85,6 +85,7 @@ pub struct MainApp {
     cache: MainAppCache,
     samples_cache: BTreeMap<&'static str, MainAppCache>,
     selected_sample: &'static str,
+    hovered_sample: &'static str,
 
     #[cfg(target_arch = "wasm32")]
     is_loaded_from_url: bool,
@@ -116,6 +117,7 @@ impl Default for MainApp {
             side_panel_open: false,
             panel_status: Default::default(),
             selected_sample: "",
+            hovered_sample: "",
         }
     }
 }
@@ -248,6 +250,7 @@ impl MainApp {
 
     fn ui_samples_panel(&mut self, ui: &mut egui::Ui) {
         egui::ScrollArea::vertical().show(ui, |ui| {
+            let mut hover_count = 0;
             for (name, code) in SAMPLE_CODES_LIST {
                 let selected = self.selected_sample == name;
                 egui::containers::Frame::default()
@@ -320,6 +323,11 @@ impl MainApp {
                                 self.selected_sample = name;
                             }
                         }
+                        if response.hovered() {
+                            self.hovered_sample = name;
+                            hover_count += 1;
+                        }
+
                         if selected
                             || response.hovered()
                             || response.highlighted()
@@ -339,18 +347,27 @@ impl MainApp {
                         }
                     });
             }
+            if hover_count == 0 {
+                self.hovered_sample = "";
+            }
         });
     }
 
     fn ui_sample_code_editor(&mut self, ui: &mut egui::Ui) {
-        if self.selected_sample.is_empty() {
+        if self.selected_sample.is_empty() && self.hovered_sample.is_empty() {
             return;
         }
+
+        let sample_to_be_chosen = if !self.hovered_sample.is_empty() {
+            self.hovered_sample
+        } else {
+            self.selected_sample
+        };
 
         let mut sample_code = AnyData::new(
             SAMPLE_CODES_LIST
                 .iter()
-                .find(|x| x.0 == self.selected_sample)
+                .find(|x| x.0 == sample_to_be_chosen)
                 .unwrap()
                 .1
                 .to_owned(),
@@ -568,7 +585,7 @@ impl MainApp {
     fn ui_visualizer(&mut self, ui: &mut egui::Ui) {
         let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
 
-        if self.selected_sample.is_empty() {
+        if self.selected_sample.is_empty() && self.hovered_sample.is_empty() {
             let mut has_error = false;
             if !self.code.equal::<String, String>(&self.cache.code)
                 || self.params != self.cache.params
@@ -614,8 +631,12 @@ impl MainApp {
         } else {
             let visualizer =
                 CommonVecVisualizer::new([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
-
-            let v = self.samples_cache.get(self.selected_sample).unwrap();
+            let sample_to_be_chosen = if !self.hovered_sample.is_empty() {
+                self.hovered_sample
+            } else {
+                self.selected_sample
+            };
+            let v = self.samples_cache.get(sample_to_be_chosen).unwrap();
 
             visualizer.plot(ui, v.lines.clone(), false, true, true, false, |plot| plot);
         }
