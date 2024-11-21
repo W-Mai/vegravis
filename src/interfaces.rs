@@ -172,6 +172,7 @@ pub trait IVisualizer {
         show_inter_dash: bool,
         colorful_block: bool,
         lcd_coords: bool,
+        config_fn: impl FnOnce(egui_plot::Plot) -> egui_plot::Plot,
     );
 
     fn transform(&mut self, matrix: [[f64; 3]; 3]);

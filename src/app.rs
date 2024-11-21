@@ -123,6 +123,13 @@ impl eframe::App for MainApp {
                 self.ui_panels(ui);
             });
 
+        egui::SidePanel::left("Samples")
+            .resizable(false)
+            .max_width(300.0)
+            .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[0][1]), |ui| {
+                self.ui_samples_panel(ui);
+            });
+
         egui::Window::new("Options")
             .open(&mut self.panel_status.contains(WINDOW_NAMES[2][1]))
             .fixed_size([600.0, 200.0])
@@ -211,6 +218,45 @@ impl MainApp {
                     }
                 }
             });
+        });
+    }
+
+    fn ui_samples_panel(&mut self, ui: &mut egui::Ui) {
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            for (name, code) in SAMPLE_CODES_LIST {
+                ui.vertical_centered(|ui| {
+                    ui.set_height(300.0);
+                    ui.vertical_centered(|ui| {
+                        let visualizer = CommonVecVisualizer::new([
+                            [1.0, 0.0, 0.0],
+                            [0.0, 1.0, 0.0],
+                            [0.0, 0.0, 1.0],
+                        ]);
+
+                        let mut generator = VecLineGen::default();
+                        let mut parser =
+                            CodeParser::new(AnyData::new(code.to_owned()), &mut generator);
+                        let vlg = parser.parse().unwrap_or_else(|e| {
+                            error!("Error: {:?}", e);
+                            unreachable!("The sample code can't go wrong.");
+                        });
+                        let parsed = vlg.gen(0..vlg.len() as i64);
+
+                        visualizer.plot(ui, parsed, false, true, true, false, |plot| {
+                            plot.show_axes([false, false])
+                                .id(egui::Id::from(name))
+                                .width(250.0)
+                                .height(250.0)
+                                .allow_scroll([false, false])
+                                .allow_drag([false, false])
+                                .allow_zoom([false, false])
+                                .show_x(false)
+                                .show_y(false)
+                        });
+                        ui.heading(name);
+                    });
+                });
+            }
         });
     }
 
@@ -444,6 +490,7 @@ impl MainApp {
             self.params.show_inter_dash,
             self.params.colorful_block,
             self.params.lcd_coords,
+            |x| x,
         );
     }
 

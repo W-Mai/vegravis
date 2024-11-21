@@ -23,6 +23,7 @@ impl IVisualizer for CommonVecVisualizer {
         show_inter_dash: bool,
         colorful_block: bool,
         lcd_coords: bool,
+        config_fn: impl FnOnce(Plot) -> Plot,
     ) {
         let mut trans_matrix = self.t;
         if lcd_coords {
@@ -35,6 +36,7 @@ impl IVisualizer for CommonVecVisualizer {
             .y_axis_formatter(move |mk, _range| {
                 format!("{:.0}", if lcd_coords { mk.value.neg() } else { mk.value })
             });
+        let plot = config_fn(plot);
         plot.show(ui, |plot_ui| {
             let lines = input;
             if lines.is_empty() {
