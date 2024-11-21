@@ -13,8 +13,8 @@ fn main() {
             let res = res.expect("Failed to read directory entry");
             let path = res.path();
             if path.is_file() {
-                let content =
-                    fs::read_to_string(&path).expect(&format!("Failed to read file: {:?}", path));
+                let content = fs::read_to_string(&path);
+                let content = content.unwrap_or_else(|_| panic!("Failed to read file: {:?}", path));
                 let file_name = path.file_name().unwrap().to_string_lossy().into_owned();
                 Some((file_name, content))
             } else {
