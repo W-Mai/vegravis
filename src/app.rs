@@ -84,6 +84,7 @@ pub struct MainApp {
 
     cache: MainAppCache,
     samples_cache: BTreeMap<&'static str, MainAppCache>,
+    selected_sample: &'static str,
 
     #[cfg(target_arch = "wasm32")]
     is_loaded_from_url: bool,
@@ -114,6 +115,7 @@ impl Default for MainApp {
             is_loaded_from_url: false,
             side_panel_open: false,
             panel_status: Default::default(),
+            selected_sample: "",
         }
     }
 }
@@ -240,6 +242,7 @@ impl MainApp {
     fn ui_samples_panel(&mut self, ui: &mut egui::Ui) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             for (name, code) in SAMPLE_CODES_LIST {
+                let selected = self.selected_sample == name;
                 egui::containers::Frame::default()
                     .inner_margin(10.0)
                     .outer_margin(10.0)
@@ -299,11 +302,22 @@ impl MainApp {
 
                         let response = one_sample.response;
 
-                        let visuals = ui.style().interact_selectable(&response, true);
+                        let visuals = ui.style().interact_selectable(&response, selected);
 
                         let rect = response.rect;
                         let response = ui.allocate_rect(rect, Sense::click());
-                        if response.hovered() || response.highlighted() || response.has_focus() {
+                        if response.clicked() {
+                            if selected {
+                                self.selected_sample = ""
+                            } else {
+                                self.selected_sample = name;
+                            }
+                        }
+                        if selected
+                            || response.hovered()
+                            || response.highlighted()
+                            || response.has_focus()
+                        {
                             let rect = rect.expand(10.0);
                             let mut painter = ui.painter_at(rect);
                             let rect = rect.expand(-2.0);
