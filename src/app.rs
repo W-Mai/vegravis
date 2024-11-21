@@ -12,9 +12,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 use std::vec;
 
-use base64::prelude::*;
-
 use super::sample_codes_list::SAMPLE_CODES_LIST;
+use crate::egui::Sense;
+use base64::prelude::*;
 
 const WINDOW_NAMES: [[&str; 2]; 4] = [
     ["🐑", "Samples"],
@@ -240,47 +240,83 @@ impl MainApp {
     fn ui_samples_panel(&mut self, ui: &mut egui::Ui) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             for (name, code) in SAMPLE_CODES_LIST {
-                ui.vertical_centered(|ui| {
-                    ui.set_height(300.0);
-                    ui.vertical_centered(|ui| {
-                        let visualizer = CommonVecVisualizer::new([
-                            [1.0, 0.0, 0.0],
-                            [0.0, 1.0, 0.0],
-                            [0.0, 0.0, 1.0],
-                        ]);
+                egui::containers::Frame::default()
+                    .inner_margin(10.0)
+                    .outer_margin(10.0)
+                    .rounding(10.0)
+                    .show(ui, |ui| {
+                        let one_sample = ui.vertical_centered(|ui| {
+                            ui.set_height(300.0);
+                            ui.vertical_centered(|ui| {
+                                let visualizer = CommonVecVisualizer::new([
+                                    [1.0, 0.0, 0.0],
+                                    [0.0, 1.0, 0.0],
+                                    [0.0, 0.0, 1.0],
+                                ]);
 
-                        if !self.samples_cache.contains_key(name) {
-                            self.samples_cache.insert(name, Default::default());
+                                if !self.samples_cache.contains_key(name) {
+                                    self.samples_cache.insert(name, Default::default());
 
-                            let v = self.samples_cache.get_mut(name).unwrap();
+                                    let v = self.samples_cache.get_mut(name).unwrap();
 
-                            let mut generator = VecLineGen::default();
-                            let mut parser =
-                                CodeParser::new(AnyData::new(code.to_owned()), &mut generator);
-                            let vlg = parser.parse().unwrap_or_else(|e| {
-                                error!("Error: {:?}", e);
-                                unreachable!("The sample code can't go wrong.");
-                            });
-                            let lines = vlg.gen(0..vlg.len() as i64);
-                            v.lines = lines;
-                        }
+                                    let mut generator = VecLineGen::default();
+                                    let mut parser = CodeParser::new(
+                                        AnyData::new(code.to_owned()),
+                                        &mut generator,
+                                    );
+                                    let vlg = parser.parse().unwrap_or_else(|e| {
+                                        error!("Error: {:?}", e);
+                                        unreachable!("The sample code can't go wrong.");
+                                    });
+                                    let lines = vlg.gen(0..vlg.len() as i64);
+                                    v.lines = lines;
+                                }
 
-                        let v = self.samples_cache.get(name).unwrap();
+                                let v = self.samples_cache.get(name).unwrap();
 
-                        visualizer.plot(ui, v.lines.clone(), false, true, true, false, |plot| {
-                            plot.show_axes([false, false])
-                                .id(egui::Id::from(name))
-                                .width(250.0)
-                                .height(250.0)
-                                .allow_scroll([false, false])
-                                .allow_drag([false, false])
-                                .allow_zoom([false, false])
-                                .show_x(false)
-                                .show_y(false)
+                                visualizer.plot(
+                                    ui,
+                                    v.lines.clone(),
+                                    false,
+                                    true,
+                                    true,
+                                    false,
+                                    |plot| {
+                                        plot.show_axes([false, false])
+                                            .id(egui::Id::from(name))
+                                            .width(250.0)
+                                            .height(250.0)
+                                            .allow_scroll([false, false])
+                                            .allow_drag([false, false])
+                                            .allow_zoom([false, false])
+                                            .show_x(false)
+                                            .show_y(false)
+                                    },
+                                );
+                                ui.heading(name);
+                            })
                         });
-                        ui.heading(name);
+
+                        let response = one_sample.response;
+
+                        let visuals = ui.style().interact_selectable(&response, true);
+
+                        let rect = response.rect;
+                        let response = ui.allocate_rect(rect, Sense::click());
+                        if response.hovered() || response.highlighted() || response.has_focus() {
+                            let rect = rect.expand(10.0);
+                            let mut painter = ui.painter_at(rect);
+                            let rect = rect.expand(-2.0);
+                            painter.rect(
+                                rect,
+                                10.0,
+                                egui::Color32::TRANSPARENT,
+                                egui::Stroke::new(2.0, ui.style().visuals.hyperlink_color),
+                            );
+                            painter.set_opacity(0.3);
+                            painter.rect(rect, 10.0, visuals.text_color(), egui::Stroke::NONE);
+                        }
                     });
-                });
             }
         });
     }
