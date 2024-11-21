@@ -383,6 +383,7 @@ impl MainApp {
         ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
             if ui.button("👆 Replaced With THIS 👇").clicked() {
                 self.code = sample_code.clone::<String>();
+                self.panel_status.remove(WINDOW_NAMES[0][1]);
             }
             ui.shrink_height_to_current();
 
