@@ -16,7 +16,12 @@ use base64::prelude::*;
 
 use super::sample_codes_list::SAMPLE_CODES_LIST;
 
-const WINDOW_NAMES: [[&str; 2]; 2] = [["⚙", "Options"], ["📄", "Code"]];
+const WINDOW_NAMES: [[&str; 2]; 4] = [
+    ["🐑", "Samples"],
+    ["", ""],
+    ["⚙", "Options"],
+    ["📄", "Code"],
+];
 
 struct MainAppCache {
     code: AnyData,
@@ -104,7 +109,7 @@ impl eframe::App for MainApp {
             self.load_from_url_search();
             self.is_loaded_from_url = true;
         }
-        
+
         egui::TopBottomPanel::top("top").show(ctx, |ui| {
             self.ui_about(ui);
         });
@@ -119,7 +124,7 @@ impl eframe::App for MainApp {
             });
 
         egui::Window::new("Options")
-            .open(&mut self.panel_status.contains(WINDOW_NAMES[0][1]))
+            .open(&mut self.panel_status.contains(WINDOW_NAMES[2][1]))
             .fixed_size([600.0, 200.0])
             .default_pos(ctx.available_rect().left_top())
             .movable(true)
@@ -131,14 +136,14 @@ impl eframe::App for MainApp {
             egui::TopBottomPanel::bottom("CodeEditor")
                 .resizable(false)
                 .exact_height(ctx.available_rect().height() / 2.0)
-                .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[1][1]), |ui| {
+                .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[3][1]), |ui| {
                     self.ui_code_editor(ui);
                 });
         } else {
             egui::SidePanel::left("CodeEditor")
                 .resizable(false)
                 .exact_width(ctx.available_rect().width() / 2.0)
-                .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[1][1]), |ui| {
+                .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[3][1]), |ui| {
                     self.ui_code_editor(ui);
                 });
         }
@@ -186,6 +191,10 @@ impl MainApp {
                 ui.toggle_value(&mut self.side_panel_open, side_panel_icon);
                 ui.separator();
                 for [icon, name] in WINDOW_NAMES {
+                    if icon.is_empty() && name.is_empty() {
+                        ui.separator();
+                        continue;
+                    }
                     let mut is_open = self.panel_status.contains(name);
                     ui.toggle_value(
                         &mut is_open,
