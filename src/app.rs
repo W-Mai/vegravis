@@ -14,7 +14,7 @@ use std::vec;
 
 use base64::prelude::*;
 
-const DEFAULT_CODE: &str = include_str!("default_code");
+const DEFAULT_CODE: &str = include_str!("sample_codes/default_code");
 
 const WINDOW_NAMES: [[&str; 2]; 2] = [["⚙", "Options"], ["📄", "Code"]];
 
