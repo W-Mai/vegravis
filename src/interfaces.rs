@@ -164,6 +164,8 @@ dyn_clone::clone_trait_object!(IVisData);
 #[allow(dead_code)]
 pub trait IVisualizer {
     fn new(transform: [[f64; 3]; 3]) -> Self;
+
+    #[allow(clippy::too_many_arguments)]
     fn plot(
         &self,
         ui: &mut egui::Ui,
