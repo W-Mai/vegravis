@@ -373,12 +373,19 @@ impl MainApp {
                 .to_owned(),
         );
 
-        ui.heading("Code Editor");
+        ui.heading(format!("Sample: {}", sample_to_be_chosen));
+        ui.separator();
         ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
+            if ui.button("👆 Replaced With THIS 👇").clicked() {
+                self.code = sample_code.clone::<String>();
+            }
+            ui.shrink_height_to_current();
+
+            ui.separator();
+
             if ui.button("📋 Copy Code").clicked() {
                 ui.output_mut(|o| o.copied_text = sample_code.cast_ref::<String>().clone());
             }
-
             if ui.button("🌐 Copy URL").clicked() {
                 let transfer_data = TransferData {
                     code: sample_code.cast_ref::<String>().clone(),
