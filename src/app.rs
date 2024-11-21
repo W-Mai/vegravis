@@ -568,47 +568,57 @@ impl MainApp {
     fn ui_visualizer(&mut self, ui: &mut egui::Ui) {
         let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
 
-        let mut has_error = false;
-        if !self.code.equal::<String, String>(&self.cache.code) || self.params != self.cache.params
-        {
-            let mut generator = VecLineGen::default();
-            let mut parser = CodeParser::new(self.code.clone::<String>(), &mut generator);
-            // 通过parser产生generator需要的前置数据
-            has_error = match parser.parse() {
-                Ok(vlg) => {
-                    let ops_count = vlg.len() as i64;
-                    self.params.vis_progress_max = ops_count;
-                    if !self.code.equal::<String, String>(&self.cache.code) {
-                        self.params.vis_progress = ops_count;
+        if self.selected_sample.is_empty() {
+            let mut has_error = false;
+            if !self.code.equal::<String, String>(&self.cache.code)
+                || self.params != self.cache.params
+            {
+                let mut generator = VecLineGen::default();
+                let mut parser = CodeParser::new(self.code.clone::<String>(), &mut generator);
+                // 通过parser产生generator需要的前置数据
+                has_error = match parser.parse() {
+                    Ok(vlg) => {
+                        let ops_count = vlg.len() as i64;
+                        self.params.vis_progress_max = ops_count;
+                        if !self.code.equal::<String, String>(&self.cache.code) {
+                            self.params.vis_progress = ops_count;
+                        }
+
+                        let parsed = vlg.gen(0..self.params.vis_progress);
+
+                        self.cache.lines = parsed.clone();
+                        self.cache.code = self.code.clone::<String>();
+                        self.cache.params = self.params.clone();
+                        false
                     }
-
-                    let parsed = vlg.gen(0..self.params.vis_progress);
-
-                    self.cache.lines = parsed.clone();
-                    self.cache.code = self.code.clone::<String>();
-                    self.cache.params = self.params.clone();
-                    false
-                }
-                Err(e) => {
-                    error!("Error: {:?}", e);
-                    self.error = Some(e);
-                    true
+                    Err(e) => {
+                        error!("Error: {:?}", e);
+                        self.error = Some(e);
+                        true
+                    }
                 }
             }
-        }
-        if !has_error {
-            self.error = None;
-        }
+            if !has_error {
+                self.error = None;
+            }
 
-        visualizer.plot(
-            ui,
-            self.cache.lines.clone(),
-            has_error,
-            self.params.show_inter_dash,
-            self.params.colorful_block,
-            self.params.lcd_coords,
-            |x| x,
-        );
+            visualizer.plot(
+                ui,
+                self.cache.lines.clone(),
+                has_error,
+                self.params.show_inter_dash,
+                self.params.colorful_block,
+                self.params.lcd_coords,
+                |x| x,
+            );
+        } else {
+            let visualizer =
+                CommonVecVisualizer::new([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
+
+            let v = self.samples_cache.get(self.selected_sample).unwrap();
+
+            visualizer.plot(ui, v.lines.clone(), false, true, true, false, |plot| plot);
+        }
     }
 
     fn ui_about(&mut self, ui: &mut egui::Ui) {
