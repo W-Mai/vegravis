@@ -551,7 +551,7 @@ impl MainApp {
                         self.params.vis_progress = ops_count;
                     }
 
-                    let parsed = vlg.gen(0..(self.params.vis_progress));
+                    let parsed = vlg.gen(0..self.params.vis_progress);
 
                     self.cache.lines = parsed.clone();
                     self.cache.code = self.code.clone::<String>();
