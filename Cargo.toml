@@ -8,6 +8,7 @@ readme = "README.md"
 license-file = "LICENSE"
 description = "Vegravis is a vector graphics visualizer.It can visualize vector graphics on a canvas, and can also visualize vector graphics in other formats through conversion."
 authors = ["W-Mai", "Benign X"]
+build = "build.rs"
 
 [package.metadata.wix]
 upgrade-guid = "A450F613-B486-4556-8FD8-B60406F07E43"

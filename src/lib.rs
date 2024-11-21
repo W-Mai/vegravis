@@ -3,6 +3,7 @@ mod app;
 mod common_vec_op;
 mod cus_component;
 mod interfaces;
+mod sample_codes_list;
 
 pub use app::MainApp;
 pub use eframe::egui;

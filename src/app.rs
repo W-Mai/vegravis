@@ -14,7 +14,7 @@ use std::vec;
 
 use base64::prelude::*;
 
-const DEFAULT_CODE: &str = include_str!("sample_codes/default_code");
+use super::sample_codes_list::SAMPLE_CODES_LIST;
 
 const WINDOW_NAMES: [[&str; 2]; 2] = [["⚙", "Options"], ["📄", "Code"]];
 
@@ -77,7 +77,7 @@ pub struct MainApp {
 impl Default for MainApp {
     fn default() -> Self {
         Self {
-            code: AnyData::new(DEFAULT_CODE.to_owned()),
+            code: AnyData::new(SAMPLE_CODES_LIST[0].1.to_owned()),
             params: MainAppParams::default(),
             cache: MainAppCache {
                 code: AnyData::new("".to_owned()),
@@ -104,7 +104,7 @@ impl eframe::App for MainApp {
             self.load_from_url_search();
             self.is_loaded_from_url = true;
         }
-
+        
         egui::TopBottomPanel::top("top").show(ctx, |ui| {
             self.ui_about(ui);
         });
