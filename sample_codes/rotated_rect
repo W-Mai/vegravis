@@ -1,0 +1,13 @@
+// Rectangle with rotation
+
+push_trans,
+	0.707,	0.707,	0,
+	-0.707,	0.707,	0,
+	0,	0,	1,
+
+move, -150, 100,
+line, 150, 100,
+line, 150, -100,
+line, -150, -100,
+line, -150, 100,
+end
