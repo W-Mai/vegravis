@@ -128,17 +128,6 @@ impl eframe::App for MainApp {
             self.is_loaded_from_url = true;
         }
 
-        if !self.selected_sample.is_empty() {
-            self.code = AnyData::new(
-                SAMPLE_CODES_LIST
-                    .iter()
-                    .find(|x| x.0 == self.selected_sample)
-                    .unwrap()
-                    .1
-                    .to_owned(),
-            )
-        }
-
         egui::TopBottomPanel::top("top").show(ctx, |ui| {
             self.ui_about(ui);
         });
@@ -157,6 +146,13 @@ impl eframe::App for MainApp {
             .max_width(300.0)
             .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[0][1]), |ui| {
                 self.ui_samples_panel(ui);
+            });
+
+        egui::TopBottomPanel::bottom("SampleCodeEditor")
+            .resizable(false)
+            .exact_height(ctx.available_rect().height() / 2.0)
+            .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[0][1]), |ui| {
+                self.ui_sample_code_editor(ui);
             });
 
         egui::Window::new("Options")
@@ -344,6 +340,41 @@ impl MainApp {
                     });
             }
         });
+    }
+
+    fn ui_sample_code_editor(&mut self, ui: &mut egui::Ui) {
+        if self.selected_sample.is_empty() {
+            return;
+        }
+
+        let mut sample_code = AnyData::new(
+            SAMPLE_CODES_LIST
+                .iter()
+                .find(|x| x.0 == self.selected_sample)
+                .unwrap()
+                .1
+                .to_owned(),
+        );
+
+        ui.heading("Code Editor");
+        ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
+            if ui.button("📋 Copy Code").clicked() {
+                ui.output_mut(|o| o.copied_text = sample_code.cast_ref::<String>().clone());
+            }
+
+            if ui.button("🌐 Copy URL").clicked() {
+                let transfer_data = TransferData {
+                    code: sample_code.cast_ref::<String>().clone(),
+                    params: Some(self.params.clone()),
+                };
+                let t = self.create_transfer_url(&transfer_data);
+                ui.output_mut(|o| o.copied_text = format!("https://w-mai.github.io/vegravis/{t}"));
+            }
+        });
+
+        ui.separator();
+
+        CodeEditor {}.show(ui, &mut sample_code, VecLineGen::default().command_syntax());
     }
 
     fn ui_options_panel(&mut self, ui: &mut egui::Ui) {
