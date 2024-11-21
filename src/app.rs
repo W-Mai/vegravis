@@ -130,6 +130,11 @@ impl eframe::App for MainApp {
             self.is_loaded_from_url = true;
         }
 
+        if !self.panel_status.contains(WINDOW_NAMES[0][1]) {
+            self.selected_sample = "";
+            self.hovered_sample = "";
+        }
+
         egui::TopBottomPanel::top("top").show(ctx, |ui| {
             self.ui_about(ui);
         });
