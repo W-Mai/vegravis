@@ -8,7 +8,7 @@ use bincode::{Decode, Encode};
 use eframe::{egui, Storage};
 use egui_extras::{Size, StripBuilder};
 use log::error;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
 use std::vec;
 
@@ -63,6 +63,19 @@ impl Default for MainAppParams {
     }
 }
 
+impl Default for MainAppCache {
+    fn default() -> Self {
+        Self {
+            code: AnyData::new("".to_owned()),
+            lines: vec![],
+            params: Default::default(),
+
+            #[cfg(target_arch = "wasm32")]
+            transfer_data: Default::default(),
+        }
+    }
+}
+
 pub struct MainApp {
     code: AnyData,
     error: Option<ParseError>,
@@ -70,6 +83,7 @@ pub struct MainApp {
     params: MainAppParams,
 
     cache: MainAppCache,
+    samples_cache: BTreeMap<&'static str, MainAppCache>,
 
     #[cfg(target_arch = "wasm32")]
     is_loaded_from_url: bool,
@@ -92,6 +106,8 @@ impl Default for MainApp {
                 #[cfg(target_arch = "wasm32")]
                 transfer_data: TransferData::default(),
             },
+            samples_cache: Default::default(),
+
             error: None,
 
             #[cfg(target_arch = "wasm32")]
@@ -233,16 +249,25 @@ impl MainApp {
                             [0.0, 0.0, 1.0],
                         ]);
 
-                        let mut generator = VecLineGen::default();
-                        let mut parser =
-                            CodeParser::new(AnyData::new(code.to_owned()), &mut generator);
-                        let vlg = parser.parse().unwrap_or_else(|e| {
-                            error!("Error: {:?}", e);
-                            unreachable!("The sample code can't go wrong.");
-                        });
-                        let parsed = vlg.gen(0..vlg.len() as i64);
+                        if !self.samples_cache.contains_key(name) {
+                            self.samples_cache.insert(name, Default::default());
 
-                        visualizer.plot(ui, parsed, false, true, true, false, |plot| {
+                            let v = self.samples_cache.get_mut(name).unwrap();
+
+                            let mut generator = VecLineGen::default();
+                            let mut parser =
+                                CodeParser::new(AnyData::new(code.to_owned()), &mut generator);
+                            let vlg = parser.parse().unwrap_or_else(|e| {
+                                error!("Error: {:?}", e);
+                                unreachable!("The sample code can't go wrong.");
+                            });
+                            let lines = vlg.gen(0..vlg.len() as i64);
+                            v.lines = lines;
+                        }
+
+                        let v = self.samples_cache.get(name).unwrap();
+
+                        visualizer.plot(ui, v.lines.clone(), false, true, true, false, |plot| {
                             plot.show_axes([false, false])
                                 .id(egui::Id::from(name))
                                 .width(250.0)
