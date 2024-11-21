@@ -128,6 +128,17 @@ impl eframe::App for MainApp {
             self.is_loaded_from_url = true;
         }
 
+        if !self.selected_sample.is_empty() {
+            self.code = AnyData::new(
+                SAMPLE_CODES_LIST
+                    .iter()
+                    .find(|x| x.0 == self.selected_sample)
+                    .unwrap()
+                    .1
+                    .to_owned(),
+            )
+        }
+
         egui::TopBottomPanel::top("top").show(ctx, |ui| {
             self.ui_about(ui);
         });
