@@ -189,6 +189,14 @@ struct CommonOpPushTrans;
 
 struct CommonOpPopTrans;
 
+struct CommonOpPushScale;
+
+struct CommonOpPushRotate;
+
+struct CommonOpPushSkew;
+
+struct CommonOpPushTranslate;
+
 impl ICommandDescription for CommonOpMOVE {
     fn name(&self) -> Vec<&str> {
         ["MOVE"].into()
@@ -389,6 +397,107 @@ impl ICommandDescription for CommonOpPopTrans {
     }
 }
 
+impl ICommandDescription for CommonOpPushScale {
+    fn name(&self) -> Vec<&str> {
+        ["PUSH_SCALE", "SCALE"].into()
+    }
+
+    fn argc(&self) -> usize {
+        2
+    }
+
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let trans_matrix: [[f64; 3]; 3] = [
+            [*argv[0].cast_ref(), 0.0, 0.0],
+            [0.0, *argv[1].cast_ref(), 0.0],
+            [0.0, 0.0, 1.0],
+        ];
+
+        ctx.local_trans.push(trans_matrix);
+        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
+
+        vec![]
+    }
+}
+
+impl ICommandDescription for CommonOpPushRotate {
+    fn name(&self) -> Vec<&str> {
+        ["PUSH_ROTATE", "ROTATE"].into()
+    }
+
+    fn argc(&self) -> usize {
+        1
+    }
+
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+
+        let angle: f64 = *argv[0].cast_ref();
+        let angle_cos = angle.cos();
+        let angle_sin = angle.sin();
+
+        let trans_matrix: [[f64; 3]; 3] = [
+            [angle_cos, -angle_sin, 0.0],
+            [angle_sin, angle_cos, 0.0],
+            [0.0, 0.0, 1.0],
+        ];
+
+        ctx.local_trans.push(trans_matrix);
+        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
+
+        vec![]
+    }
+}
+
+impl ICommandDescription for CommonOpPushSkew {
+    fn name(&self) -> Vec<&str> {
+        ["PUSH_SKEW", "SKEW"].into()
+    }
+
+    fn argc(&self) -> usize {
+        2
+    }
+
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let trans_matrix: [[f64; 3]; 3] = [
+            [1.0, *argv[0].cast_ref(), 0.0],
+            [*argv[1].cast_ref(), 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+        ];
+
+        ctx.local_trans.push(trans_matrix);
+        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
+
+        vec![]
+    }
+}
+
+impl ICommandDescription for CommonOpPushTranslate {
+    fn name(&self) -> Vec<&str> {
+        ["PUSH_TRANSLATE", "TRANSLATE"].into()
+    }
+
+    fn argc(&self) -> usize {
+        2
+    }
+
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let trans_matrix: [[f64; 3]; 3] = [
+            [0.0, 0.0, *argv[0].cast_ref()],
+            [0.0, 0.0, *argv[1].cast_ref()],
+            [0.0, 0.0, 1.0],
+        ];
+
+        ctx.local_trans.push(trans_matrix);
+        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
+
+        vec![]
+    }
+}
+
 impl ICommandSyntax for CommonVecOpSyntax {
     fn name(&self) -> &'static str {
         "CommonVecOpSyntax"
@@ -403,6 +512,10 @@ impl ICommandSyntax for CommonVecOpSyntax {
             &CommonOpEND {},
             &CommonOpPushTrans {},
             &CommonOpPopTrans {},
+            &CommonOpPushScale {},
+            &CommonOpPushRotate {},
+            &CommonOpPushSkew {},
+            &CommonOpPushTranslate {},
         ]
     }
 }
