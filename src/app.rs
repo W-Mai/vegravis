@@ -35,6 +35,9 @@ struct MainAppCache {
 
 #[derive(Clone, PartialEq, Decode, Encode)]
 struct MainAppParams {
+    vis_progress_anim: bool,
+    /// true: positive, false: negative
+    vis_progress_anim_dir: bool,
     vis_progress: i64,
     vis_progress_max: i64,
     lcd_coords: bool,
@@ -53,6 +56,8 @@ struct TransferData {
 impl Default for MainAppParams {
     fn default() -> Self {
         Self {
+            vis_progress_anim: false,
+            vis_progress_anim_dir: true,
             vis_progress: 0,
             vis_progress_max: 0,
             lcd_coords: false,
@@ -133,6 +138,24 @@ impl eframe::App for MainApp {
         if !self.panel_status.contains(WINDOW_NAMES[0][1]) {
             self.selected_sample = "";
             self.hovered_sample = "";
+        }
+
+        if self.params.vis_progress_anim {
+            ctx.request_repaint_after_secs(0.033);
+
+            self.params.vis_progress += if self.params.vis_progress_anim_dir {
+                1
+            } else {
+                -1
+            };
+
+            if self.params.vis_progress > self.params.vis_progress_max {
+                self.params.vis_progress_anim_dir = false;
+            }
+
+            if self.params.vis_progress < 0 {
+                self.params.vis_progress_anim_dir = true;
+            }
         }
 
         egui::TopBottomPanel::top("top").show(ctx, |ui| {
@@ -419,14 +442,30 @@ impl MainApp {
                     &mut self.params.show_inter_dash,
                 ));
                 ui.add(toggle("Colorful Blocks", &mut self.params.colorful_block));
-                ui.add_sized(
+                ui.allocate_ui_with_layout(
                     ui.available_size(),
-                    egui::Slider::new(
-                        &mut self.params.vis_progress,
-                        0..=self.params.vis_progress_max,
-                    )
-                    .text("Progress")
-                    .show_value(true),
+                    egui::Layout::left_to_right(egui::Align::Center),
+                    |ui| {
+                        let mut anim_status = self.params.vis_progress_anim;
+                        ui.toggle_value(
+                            &mut anim_status,
+                            if self.params.vis_progress_anim {
+                                "⏸"
+                            } else {
+                                "▶"
+                            },
+                        );
+
+                        self.params.vis_progress_anim = anim_status;
+                        ui.add(
+                            egui::Slider::new(
+                                &mut self.params.vis_progress,
+                                0..=self.params.vis_progress_max,
+                            )
+                            .text("Progress")
+                            .show_value(true),
+                        );
+                    },
                 );
             });
             StripBuilder::new(ui)
