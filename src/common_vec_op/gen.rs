@@ -30,6 +30,17 @@ fn calc_trans_stack(trans_stack: &Vec<[[f64; 3]; 3]>) -> [[f64; 3]; 3] {
     res
 }
 
+fn process_point(argv: Rc<Vec<AnyData>>, matrix: [[f64; 3]; 3]) -> Vec<f64> {
+    argv.chunks(2)
+        .map(|x| {
+            VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
+                .matrix(matrix)
+                .cast::<VecLineData>()
+        })
+        .flat_map(|x| [x.x, x.y])
+        .collect::<Vec<_>>()
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct VecLineData {
     x: f64,
@@ -192,15 +203,7 @@ impl ICommandDescription for CommonOpMOVE {
 
         let current_matrix = ctx.current_trans;
 
-        let argv = argv
-            .chunks(2)
-            .map(|x| {
-                VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                    .matrix(current_matrix)
-                    .cast::<VecLineData>()
-            })
-            .flat_map(|x| [x.x, x.y])
-            .collect::<Vec<_>>();
+        let argv = process_point(argv, current_matrix);
         let nums = [argv[0], argv[1]];
 
         let points = vec![VecLineData::new(nums[0], nums[1])];
@@ -225,15 +228,7 @@ impl ICommandDescription for CommonOpLINE {
         let ctx = ctx.cast_mut::<GenerateCtx>();
         let current_matrix = ctx.current_trans;
 
-        let argv = argv
-            .chunks(2)
-            .map(|x| {
-                VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                    .matrix(current_matrix)
-                    .cast::<VecLineData>()
-            })
-            .flat_map(|x| [x.x, x.y])
-            .collect::<Vec<_>>();
+        let argv = process_point(argv, current_matrix);
 
         let nums = [argv[0], argv[1]];
 
@@ -262,15 +257,7 @@ impl ICommandDescription for CommonOpQUAD {
         let ctx = ctx.cast_mut::<GenerateCtx>();
         let current_matrix = ctx.current_trans;
 
-        let argv = argv
-            .chunks(2)
-            .map(|x| {
-                VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                    .matrix(current_matrix)
-                    .cast::<VecLineData>()
-            })
-            .flat_map(|x| [x.x, x.y])
-            .collect::<Vec<_>>();
+        let argv = process_point(argv, current_matrix);
 
         let [x1, y1, x2, y2] = [argv[0], argv[1], argv[2], argv[3]];
 
@@ -304,15 +291,7 @@ impl ICommandDescription for CommonOpCUBI {
         let ctx = ctx.cast_mut::<GenerateCtx>();
         let current_matrix = ctx.current_trans;
 
-        let argv = argv
-            .chunks(2)
-            .map(|x| {
-                VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                    .matrix(current_matrix)
-                    .cast::<VecLineData>()
-            })
-            .flat_map(|x| [x.x, x.y])
-            .collect::<Vec<_>>();
+        let argv = process_point(argv, current_matrix);
 
         let [x1, y1, x2, y2, x3, y3] = [argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]];
 
