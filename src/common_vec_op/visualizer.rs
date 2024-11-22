@@ -1,10 +1,17 @@
-use crate::common_vec_op::VecLineData;
-use crate::interfaces::{IVisData, IVisualizer};
-use crate::COLOR_PALETTE;
+/// Stds
+use std::ops::Neg;
+
+/// 3rds
 use eframe::egui;
 use eframe::egui::Stroke;
 use egui_plot::{Line, LineStyle, Plot};
-use std::ops::Neg;
+
+/// Crates
+use crate::interfaces::{IVisData, IVisualizer};
+use crate::COLOR_PALETTE;
+
+/// Self
+use super::VecLineData;
 
 pub struct CommonVecVisualizer {
     t: [[f64; 3]; 3],

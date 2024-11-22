@@ -1,54 +1,29 @@
-use crate::any_data::AnyData;
-use crate::common_vec_op::syntax::CommonVecOpSyntax;
-use crate::interfaces::{
-    Command, ICommandDescription, ICommandSyntax, IVisData, IVisDataGenerator,
-};
-use egui_plot::PlotPoint;
+/// Stds
 use std::fmt::Debug;
 use std::ops::Range;
-use std::rc::Rc;
 
-fn calc_trans_stack(trans_stack: &Vec<[[f64; 3]; 3]>) -> [[f64; 3]; 3] {
-    fn mul_matrix(a: &[[f64; 3]; 3], b: &[[f64; 3]; 3]) -> [[f64; 3]; 3] {
-        let mut result = [[0.0; 3]; 3];
+/// 3rds
+use getset::{CopyGetters, Getters, MutGetters, Setters};
 
-        for (i, iv) in a.iter().enumerate() {
-            for j in 0..3 {
-                for (k, kv) in b.iter().enumerate() {
-                    result[i][j] += iv[k] * kv[j];
-                }
-            }
-        }
+/// Crates
+use crate::any_data::AnyData;
+use crate::interfaces::{Command, ICommandSyntax, IVisData, IVisDataGenerator};
 
-        result
-    }
+/// Self
+use super::ops::GenerateCtx;
+use super::syntax::CommonVecOpSyntax;
 
-    let mut res = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
-    for i in trans_stack {
-        res = mul_matrix(&res, i);
-    }
-    res
-}
-
-fn process_point(argv: Rc<Vec<AnyData>>, matrix: [[f64; 3]; 3]) -> Vec<f64> {
-    argv.chunks(2)
-        .map(|x| {
-            VecLineData::new(*x[0].cast_ref(), *x[1].cast_ref())
-                .matrix(matrix)
-                .cast::<VecLineData>()
-        })
-        .flat_map(|x| [x.x, x.y])
-        .collect::<Vec<_>>()
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Getters, Setters, MutGetters, CopyGetters, Default, Debug, Copy, Clone, PartialEq)]
 pub struct VecLineData {
+    #[getset(get_copy = "pub", set = "pub", get_mut = "pub")]
     x: f64,
+
+    #[getset(get_copy = "pub", set = "pub", get_mut = "pub")]
     y: f64,
 }
 
 impl VecLineData {
-    fn new(x: f64, y: f64) -> Self {
+    pub(crate) fn new(x: f64, y: f64) -> Self {
         Self { x, y }
     }
 }
@@ -89,13 +64,6 @@ impl IVisData for VecLineData {
     }
 }
 
-struct GenerateCtx {
-    grouping: bool,
-    cursor: PlotPoint,
-    local_trans: Vec<[[f64; 3]; 3]>,
-    current_trans: [[f64; 3]; 3],
-}
-
 #[derive(Debug, Clone)]
 pub struct VecLineGen {
     ops: Vec<Command>,
@@ -113,12 +81,7 @@ impl IVisDataGenerator for VecLineGen {
     }
 
     fn gen(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>> {
-        let mut gen_ctx = AnyData::new(GenerateCtx {
-            grouping: false,
-            cursor: PlotPoint::new(0.0, 0.0),
-            local_trans: vec![],
-            current_trans: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-        });
+        let mut gen_ctx = AnyData::new(GenerateCtx::default());
         let mut points_total = vec![];
         let mut points: Vec<Box<dyn IVisData>> = vec![];
         let mut counter = 0i64;
@@ -133,7 +96,7 @@ impl IVisDataGenerator for VecLineGen {
 
             let converted = AnyData::convert_from_vec::<VecLineData>(op.operate(&mut gen_ctx));
 
-            if gen_ctx.cast_ref::<GenerateCtx>().grouping {
+            if gen_ctx.cast_ref::<GenerateCtx>().grouping() {
                 points.append(
                     &mut converted
                         .iter()
@@ -170,352 +133,5 @@ impl IVisDataGenerator for VecLineGen {
 impl Default for VecLineGen {
     fn default() -> Self {
         VecLineGen::new(vec![])
-    }
-}
-
-// ==============
-
-struct CommonOpMOVE;
-
-struct CommonOpLINE;
-
-struct CommonOpQUAD;
-
-struct CommonOpCUBI;
-
-struct CommonOpEND;
-
-struct CommonOpPushTrans;
-
-struct CommonOpPopTrans;
-
-struct CommonOpPushScale;
-
-struct CommonOpPushRotate;
-
-struct CommonOpPushSkew;
-
-struct CommonOpPushTranslate;
-
-impl ICommandDescription for CommonOpMOVE {
-    fn name(&self) -> Vec<&str> {
-        ["MOVE"].into()
-    }
-
-    fn argc(&self) -> usize {
-        2
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-
-        let current_matrix = ctx.current_trans;
-
-        let argv = process_point(argv, current_matrix);
-        let nums = [argv[0], argv[1]];
-
-        let points = vec![VecLineData::new(nums[0], nums[1])];
-
-        ctx.grouping = false;
-        ctx.cursor = PlotPoint::from(nums);
-
-        AnyData::convert_to_vec(points)
-    }
-}
-
-impl ICommandDescription for CommonOpLINE {
-    fn name(&self) -> Vec<&str> {
-        ["LINE"].into()
-    }
-
-    fn argc(&self) -> usize {
-        2
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-        let current_matrix = ctx.current_trans;
-
-        let argv = process_point(argv, current_matrix);
-
-        let nums = [argv[0], argv[1]];
-
-        let points = vec![
-            VecLineData::new(ctx.cursor.x, ctx.cursor.y),
-            VecLineData::new(nums[0], nums[1]),
-        ];
-
-        ctx.grouping = true;
-        ctx.cursor = PlotPoint::from(nums);
-
-        AnyData::convert_to_vec(points)
-    }
-}
-
-impl ICommandDescription for CommonOpQUAD {
-    fn name(&self) -> Vec<&str> {
-        ["QUAD"].into()
-    }
-
-    fn argc(&self) -> usize {
-        4
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-        let current_matrix = ctx.current_trans;
-
-        let argv = process_point(argv, current_matrix);
-
-        let [x1, y1, x2, y2] = [argv[0], argv[1], argv[2], argv[3]];
-
-        let cursor = ctx.cursor;
-        let mut points = Vec::new();
-        let mut t = 0.0;
-        while t < 1.0 {
-            let x = (1.0f64 - t).powi(2) * cursor.x + 2.0 * (1.0 - t) * t * x1 + t.powi(2) * x2;
-            let y = (1.0f64 - t).powi(2) * cursor.y + 2.0 * (1.0 - t) * t * y1 + t.powi(2) * y2;
-            points.push(VecLineData::new(x, y));
-            t += 0.01;
-        }
-
-        ctx.grouping = true;
-        ctx.cursor = PlotPoint::from([x2, y2]);
-
-        AnyData::convert_to_vec(points)
-    }
-}
-
-impl ICommandDescription for CommonOpCUBI {
-    fn name(&self) -> Vec<&str> {
-        ["CUBI", "CUBIC"].into()
-    }
-
-    fn argc(&self) -> usize {
-        6
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-        let current_matrix = ctx.current_trans;
-
-        let argv = process_point(argv, current_matrix);
-
-        let [x1, y1, x2, y2, x3, y3] = [argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]];
-
-        let cursor = ctx.cursor;
-        let mut points = Vec::new();
-        let mut t = 0.0;
-        while t < 1.0 {
-            let x = (1.0f64 - t).powi(3) * cursor.x
-                + 3.0 * (1.0 - t).powi(2) * t * x1
-                + 3.0 * (1.0 - t) * t.powi(2) * x2
-                + t.powi(3) * x3;
-            let y = (1.0f64 - t).powi(3) * cursor.y
-                + 3.0 * (1.0 - t).powi(2) * t * y1
-                + 3.0 * (1.0 - t) * t.powi(2) * y2
-                + t.powi(3) * y3;
-            points.push(VecLineData::new(x, y));
-            t += 0.01;
-        }
-
-        ctx.grouping = true;
-        ctx.cursor = PlotPoint::from([x3, y3]);
-
-        AnyData::convert_to_vec(points)
-    }
-}
-
-impl ICommandDescription for CommonOpEND {
-    fn name(&self) -> Vec<&str> {
-        ["END", "CLOSE"].into()
-    }
-
-    fn argc(&self) -> usize {
-        0
-    }
-
-    fn operate(&self, _ctx: &mut AnyData, _argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        vec![]
-    }
-}
-
-impl ICommandDescription for CommonOpPushTrans {
-    fn name(&self) -> Vec<&str> {
-        ["PUSH_TRANS"].into()
-    }
-
-    fn argc(&self) -> usize {
-        9
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-        let trans_matrix: [[f64; 3]; 3] = [
-            [
-                *argv[0].cast_ref(),
-                *argv[1].cast_ref(),
-                *argv[2].cast_ref(),
-            ],
-            [
-                *argv[3].cast_ref(),
-                *argv[4].cast_ref(),
-                *argv[5].cast_ref(),
-            ],
-            [
-                *argv[6].cast_ref(),
-                *argv[7].cast_ref(),
-                *argv[8].cast_ref(),
-            ],
-        ];
-
-        ctx.local_trans.push(trans_matrix);
-        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
-
-        vec![]
-    }
-}
-
-impl ICommandDescription for CommonOpPopTrans {
-    fn name(&self) -> Vec<&str> {
-        ["POP_TRANS"].into()
-    }
-
-    fn argc(&self) -> usize {
-        0
-    }
-
-    fn operate(&self, ctx: &mut AnyData, _argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-        if ctx.local_trans.is_empty() {
-            return vec![];
-        }
-        ctx.local_trans.pop();
-        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
-
-        vec![]
-    }
-}
-
-impl ICommandDescription for CommonOpPushScale {
-    fn name(&self) -> Vec<&str> {
-        ["PUSH_SCALE", "SCALE"].into()
-    }
-
-    fn argc(&self) -> usize {
-        2
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-        let trans_matrix: [[f64; 3]; 3] = [
-            [*argv[0].cast_ref(), 0.0, 0.0],
-            [0.0, *argv[1].cast_ref(), 0.0],
-            [0.0, 0.0, 1.0],
-        ];
-
-        ctx.local_trans.push(trans_matrix);
-        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
-
-        vec![]
-    }
-}
-
-impl ICommandDescription for CommonOpPushRotate {
-    fn name(&self) -> Vec<&str> {
-        ["PUSH_ROTATE", "ROTATE"].into()
-    }
-
-    fn argc(&self) -> usize {
-        1
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-
-        let angle: f64 = *argv[0].cast_ref();
-        let angle_cos = angle.cos();
-        let angle_sin = angle.sin();
-
-        let trans_matrix: [[f64; 3]; 3] = [
-            [angle_cos, -angle_sin, 0.0],
-            [angle_sin, angle_cos, 0.0],
-            [0.0, 0.0, 1.0],
-        ];
-
-        ctx.local_trans.push(trans_matrix);
-        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
-
-        vec![]
-    }
-}
-
-impl ICommandDescription for CommonOpPushSkew {
-    fn name(&self) -> Vec<&str> {
-        ["PUSH_SKEW", "SKEW"].into()
-    }
-
-    fn argc(&self) -> usize {
-        2
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-        let trans_matrix: [[f64; 3]; 3] = [
-            [1.0, *argv[0].cast_ref(), 0.0],
-            [*argv[1].cast_ref(), 1.0, 0.0],
-            [0.0, 0.0, 1.0],
-        ];
-
-        ctx.local_trans.push(trans_matrix);
-        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
-
-        vec![]
-    }
-}
-
-impl ICommandDescription for CommonOpPushTranslate {
-    fn name(&self) -> Vec<&str> {
-        ["PUSH_TRANSLATE", "TRANSLATE"].into()
-    }
-
-    fn argc(&self) -> usize {
-        2
-    }
-
-    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
-        let ctx = ctx.cast_mut::<GenerateCtx>();
-        let trans_matrix: [[f64; 3]; 3] = [
-            [0.0, 0.0, *argv[0].cast_ref()],
-            [0.0, 0.0, *argv[1].cast_ref()],
-            [0.0, 0.0, 1.0],
-        ];
-
-        ctx.local_trans.push(trans_matrix);
-        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
-
-        vec![]
-    }
-}
-
-impl ICommandSyntax for CommonVecOpSyntax {
-    fn name(&self) -> &'static str {
-        "CommonVecOpSyntax"
-    }
-
-    fn formats(&self) -> Vec<&'static dyn ICommandDescription> {
-        vec![
-            &CommonOpMOVE {},
-            &CommonOpLINE {},
-            &CommonOpQUAD {},
-            &CommonOpCUBI {},
-            &CommonOpEND {},
-            &CommonOpPushTrans {},
-            &CommonOpPopTrans {},
-            &CommonOpPushScale {},
-            &CommonOpPushRotate {},
-            &CommonOpPushSkew {},
-            &CommonOpPushTranslate {},
-        ]
     }
 }

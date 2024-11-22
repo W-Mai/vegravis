@@ -33,6 +33,7 @@ dyn-clone = "1.0.16"
 web-sys = { version = "0.3.72", features = ["History"] }
 bincode = "2.0.0-rc.3"
 base64 = "0.22.1"
+getset = "0.1.3"
 
 # native:
 [target.'cfg(all(not(target_arch = "wasm32"), platform = "macos"))'.dependencies]
