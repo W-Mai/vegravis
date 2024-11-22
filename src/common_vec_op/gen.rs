@@ -118,6 +118,13 @@ impl IVisDataGenerator for VecLineGen {
             points_total.push(points);
         }
 
+        let world_matrix = gen_ctx.cast_ref::<GenerateCtx>().current_world_trans();
+        points_total.iter_mut().for_each(|p| {
+            p.iter_mut().for_each(|x| {
+                *x = Box::new(x.matrix(world_matrix).cast::<VecLineData>());
+            })
+        });
+
         points_total
     }
 

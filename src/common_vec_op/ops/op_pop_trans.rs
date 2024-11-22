@@ -21,11 +21,11 @@ impl ICommandDescription for CommonOpPopTrans {
 
     fn operate(&self, ctx: &mut AnyData, _argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         let ctx = ctx.cast_mut::<GenerateCtx>();
-        if ctx.local_trans.is_empty() {
+        if ctx.local_trans_stack.is_empty() {
             return vec![];
         }
-        ctx.local_trans.pop();
-        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
+        ctx.local_trans_stack.pop();
+        ctx.current_local_trans = calc_trans_stack(&ctx.local_trans_stack);
 
         vec![]
     }

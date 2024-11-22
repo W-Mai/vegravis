@@ -600,8 +600,6 @@ impl MainApp {
     }
 
     fn ui_visualizer(&mut self, ui: &mut egui::Ui) {
-        let visualizer = CommonVecVisualizer::new(self.params.trans_matrix);
-
         if self.selected_sample.is_empty() && self.hovered_sample.is_empty() {
             let mut has_error = false;
             if !self.code.equal::<String, String>(&self.cache.code)
@@ -635,8 +633,7 @@ impl MainApp {
             if !has_error {
                 self.error = None;
             }
-
-            visualizer.plot(
+            CommonVecVisualizer::new(self.params.trans_matrix).plot(
                 ui,
                 self.cache.lines.clone(),
                 has_error,

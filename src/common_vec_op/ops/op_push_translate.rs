@@ -27,8 +27,8 @@ impl ICommandDescription for CommonOpPushTranslate {
             [0.0, 0.0, 1.0],
         ];
 
-        ctx.local_trans.push(trans_matrix);
-        ctx.current_trans = calc_trans_stack(&ctx.local_trans);
+        ctx.local_trans_stack.push(trans_matrix);
+        ctx.current_local_trans = calc_trans_stack(&ctx.local_trans_stack);
 
         vec![]
     }

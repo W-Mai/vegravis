@@ -32,7 +32,7 @@ use op_pop_trans::CommonOpPopTrans;
 use op_push_rotate::CommonOpPushRotate;
 use op_push_scale::CommonOpPushScale;
 use op_push_skew::CommonOpPushSkew;
-use op_push_trans::CommonOpPushTrans;
+use op_push_trans::{CommonOpPushTrans, CommonOpPushWorldTrans};
 use op_push_translate::CommonOpPushTranslate;
 use op_quad::CommonOpQUAD;
 
@@ -45,10 +45,16 @@ pub struct GenerateCtx {
     cursor: PlotPoint,
 
     #[getset(set = "pub", get_mut = "pub")]
-    local_trans: Vec<[[f64; 3]; 3]>,
+    local_trans_stack: Vec<[[f64; 3]; 3]>,
 
     #[getset(get_copy = "pub", set = "pub", get_mut = "pub")]
-    current_trans: [[f64; 3]; 3],
+    current_local_trans: [[f64; 3]; 3],
+
+    #[getset(set = "pub", get_mut = "pub")]
+    world_trans_stack: Vec<[[f64; 3]; 3]>,
+
+    #[getset(get_copy = "pub", set = "pub", get_mut = "pub")]
+    current_world_trans: [[f64; 3]; 3],
 }
 
 impl Default for GenerateCtx {
@@ -56,8 +62,10 @@ impl Default for GenerateCtx {
         Self {
             grouping: false,
             cursor: PlotPoint::new(0.0, 0.0),
-            local_trans: vec![],
-            current_trans: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+            local_trans_stack: vec![],
+            current_local_trans: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+            world_trans_stack: vec![],
+            current_world_trans: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
         }
     }
 }
@@ -113,6 +121,7 @@ impl ICommandSyntax for CommonVecOpSyntax {
             &CommonOpPushRotate {},
             &CommonOpPushSkew {},
             &CommonOpPushTranslate {},
+            &CommonOpPushWorldTrans {},
         ]
     }
 }

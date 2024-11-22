@@ -25,7 +25,7 @@ impl ICommandDescription for CommonOpMOVE {
     fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
         let ctx = ctx.cast_mut::<GenerateCtx>();
 
-        let current_matrix = ctx.current_trans;
+        let current_matrix = ctx.current_local_trans;
 
         let argv = process_point(argv, current_matrix);
         let nums = [argv[0], argv[1]];
