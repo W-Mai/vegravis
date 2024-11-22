@@ -10,6 +10,8 @@ use super::{calc_trans_stack, GenerateCtx};
 
 pub struct CommonOpPushScale;
 
+pub struct CommonOpPushWorldScale;
+
 impl ICommandDescription for CommonOpPushScale {
     fn name(&self) -> Vec<&str> {
         ["PUSH_SCALE", "SCALE"].into()
@@ -29,6 +31,30 @@ impl ICommandDescription for CommonOpPushScale {
 
         ctx.local_trans_stack.push(trans_matrix);
         ctx.current_local_trans = calc_trans_stack(&ctx.local_trans_stack);
+
+        vec![]
+    }
+}
+
+impl ICommandDescription for CommonOpPushWorldScale {
+    fn name(&self) -> Vec<&str> {
+        ["PUSH_WORLD_SCALE", "WORLD_SCALE"].into()
+    }
+
+    fn argc(&self) -> usize {
+        2
+    }
+
+    fn operate(&self, ctx: &mut AnyData, argv: Rc<Vec<AnyData>>) -> Vec<AnyData> {
+        let ctx = ctx.cast_mut::<GenerateCtx>();
+        let trans_matrix: [[f64; 3]; 3] = [
+            [*argv[0].cast_ref(), 0.0, 0.0],
+            [0.0, *argv[1].cast_ref(), 0.0],
+            [0.0, 0.0, 1.0],
+        ];
+
+        ctx.world_trans_stack.push(trans_matrix);
+        ctx.current_world_trans = calc_trans_stack(&ctx.world_trans_stack);
 
         vec![]
     }

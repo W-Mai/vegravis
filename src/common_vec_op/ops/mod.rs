@@ -28,12 +28,12 @@ use op_cubi::CommonOpCUBI;
 use op_end::CommonOpEND;
 use op_line::CommonOpLINE;
 use op_move::CommonOpMOVE;
-use op_pop_trans::CommonOpPopTrans;
-use op_push_rotate::CommonOpPushRotate;
-use op_push_scale::CommonOpPushScale;
-use op_push_skew::CommonOpPushSkew;
+use op_pop_trans::{CommonOpPopTrans, CommonOpPopWorldTrans};
+use op_push_rotate::{CommonOpPushRotate, CommonOpPushWorldRotate};
+use op_push_scale::{CommonOpPushScale, CommonOpPushWorldScale};
+use op_push_skew::{CommonOpPushSkew, CommonOpPushWorldSkew};
 use op_push_trans::{CommonOpPushTrans, CommonOpPushWorldTrans};
-use op_push_translate::CommonOpPushTranslate;
+use op_push_translate::{CommonOpPushTranslate, CommonOpPushWorldTranslate};
 use op_quad::CommonOpQUAD;
 
 #[derive(Clone, Getters, CopyGetters, MutGetters, Setters)]
@@ -121,7 +121,13 @@ impl ICommandSyntax for CommonVecOpSyntax {
             &CommonOpPushRotate {},
             &CommonOpPushSkew {},
             &CommonOpPushTranslate {},
+            // World Transform Ops
             &CommonOpPushWorldTrans {},
+            &CommonOpPopWorldTrans {},
+            &CommonOpPushWorldScale {},
+            &CommonOpPushWorldRotate {},
+            &CommonOpPushWorldSkew {},
+            &CommonOpPushWorldTranslate {},
         ]
     }
 }
