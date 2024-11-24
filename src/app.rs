@@ -102,7 +102,7 @@ pub struct MainApp {
 
 impl Default for MainApp {
     fn default() -> Self {
-        Self {
+        let mut app = Self {
             code: AnyData::new(SAMPLE_CODES_LIST[0].1.to_owned()),
             params: MainAppParams::default(),
             cache: MainAppCache {
@@ -123,7 +123,12 @@ impl Default for MainApp {
             panel_status: Default::default(),
             selected_sample: "",
             hovered_sample: "",
-        }
+        };
+
+        app.side_panel_open = true;
+        app.panel_status.insert(WINDOW_NAMES[2][1].to_owned());
+
+        app
     }
 }
 
