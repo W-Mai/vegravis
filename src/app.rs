@@ -610,17 +610,20 @@ impl MainApp {
             egui::widgets::global_theme_preference_switch(ui);
             ui.separator();
             ui.heading("Vector Graphics Visualizer");
-            ui.separator();
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.horizontal_wrapped(|ui| {
-                    ui.label(format!("Version: {VERSION}"));
-                    ui.hyperlink_to("🌐Web Version", "https://w-mai.github.io/vegravis/");
-                    ui.hyperlink_to(
-                        format!("{GITHUB} vegravis on GitHub"),
-                        env!("CARGO_PKG_HOMEPAGE"),
-                    );
+
+            if ui.ctx().screen_rect().width() > 400.0 {
+                ui.separator();
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(format!("Version: {VERSION}"));
+                        ui.hyperlink_to("🌐Web Version", "https://w-mai.github.io/vegravis/");
+                        ui.hyperlink_to(
+                            format!("{GITHUB} vegravis on GitHub"),
+                            env!("CARGO_PKG_HOMEPAGE"),
+                        );
+                    });
                 });
-            });
+            }
         });
     }
 }
