@@ -198,38 +198,49 @@ impl eframe::App for MainApp {
             },
         );
 
+        egui::SidePanel::right("Transform")
+            .resizable(false)
+            .max_width(300.0)
+            .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[0][1]), |ui| {
+                self.ui_transform_panel(ui);
+            });
+
         if ctx.available_rect().aspect_ratio() < 1.0 {
             egui::TopBottomPanel::bottom("CodeEditor")
                 .resizable(false)
-                .exact_height(ctx.available_rect().height() / 2.0)
+                // .exact_height(ctx.available_rect().height() / 2.0)
                 .show_animated(
                     ctx,
                     self.panel_status.contains(WINDOW_NAMES[3][1])
                         || self.panel_status.contains(WINDOW_NAMES[4][1]),
                     |ui| {
-                        if self.panel_status.contains(WINDOW_NAMES[3][1]) {
-                            self.ui_transform_panel(ui);
-                        }
-                        if self.panel_status.contains(WINDOW_NAMES[4][1]) {
-                            self.ui_code_editor(ui);
-                        }
+                        ui.horizontal_wrapped(|ui| {
+                            if self.panel_status.contains(WINDOW_NAMES[3][1]) {
+                                self.ui_transform_panel(ui);
+                            }
+                            if self.panel_status.contains(WINDOW_NAMES[4][1]) {
+                                self.ui_code_editor(ui);
+                            }
+                        });
                     },
                 );
         } else {
             egui::SidePanel::left("CodeEditor")
                 .resizable(false)
-                .exact_width(ctx.available_rect().width() / 2.0)
+                // .exact_width(ctx.available_rect().width() / 2.0)
                 .show_animated(
                     ctx,
                     self.panel_status.contains(WINDOW_NAMES[3][1])
                         || self.panel_status.contains(WINDOW_NAMES[4][1]),
                     |ui| {
-                        if self.panel_status.contains(WINDOW_NAMES[3][1]) {
-                            self.ui_transform_panel(ui);
-                        }
-                        if self.panel_status.contains(WINDOW_NAMES[4][1]) {
-                            self.ui_code_editor(ui);
-                        }
+                        ui.vertical_centered_justified(|ui| {
+                            if self.panel_status.contains(WINDOW_NAMES[3][1]) {
+                                self.ui_transform_panel(ui);
+                            }
+                            if self.panel_status.contains(WINDOW_NAMES[4][1]) {
+                                self.ui_code_editor(ui);
+                            }
+                        });
                     },
                 );
         }

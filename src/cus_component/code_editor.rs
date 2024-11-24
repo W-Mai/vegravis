@@ -11,9 +11,9 @@ impl ICodeEditor for CodeEditor {
         ECodeEditor::default()
             .id_source("code editor")
             .with_rows(12)
-            .with_fontsize(14.0)
             .with_theme(ColorTheme::SONOKAI)
             .with_syntax(format.syntax())
+            .with_ui_fontsize(ui)
             .with_numlines(true)
             .show(ui, code.cast_mut::<String>())
             .response
