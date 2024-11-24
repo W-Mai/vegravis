@@ -163,7 +163,7 @@ impl eframe::App for MainApp {
             }
         }
 
-        egui::TopBottomPanel::top("top").show(ctx, |ui| {
+        let about_resp = egui::TopBottomPanel::top("top").show(ctx, |ui| {
             self.ui_about(ui);
         });
         egui::TopBottomPanel::bottom("bottom").show(ctx, |ui| {
@@ -190,7 +190,7 @@ impl eframe::App for MainApp {
                 self.ui_sample_code_editor(ui);
             });
 
-        egui::TopBottomPanel::top("Options").show_animated(
+        let options_resp = egui::TopBottomPanel::top("Options").show_animated(
             ctx,
             self.panel_status.contains(WINDOW_NAMES[2][1]),
             |ui| {
@@ -198,13 +198,27 @@ impl eframe::App for MainApp {
             },
         );
 
-        egui::SidePanel::right("Transform").show_animated(
-            ctx,
-            self.panel_status.contains(WINDOW_NAMES[3][1]),
-            |ui| {
+        let mut transform_open = self.panel_status.contains(WINDOW_NAMES[3][1]);
+        egui::Window::new("Transform")
+            .title_bar(false)
+            .open(&mut transform_open)
+            .fixed_size([140.0, 120.0])
+            .anchor(
+                egui::Align2::RIGHT_TOP,
+                [
+                    0.0,
+                    about_resp.response.rect.height()
+                        + options_resp
+                            .map(|t| t.response.rect.height())
+                            .unwrap_or_default(),
+                ],
+            )
+            .show(ctx, |ui| {
                 self.ui_transform_panel(ui);
-            },
-        );
+            });
+        if !transform_open {
+            self.panel_status.remove(WINDOW_NAMES[3][1]);
+        }
 
         if ctx.available_rect().aspect_ratio() < 1.0 {
             egui::TopBottomPanel::bottom("CodeEditor")
