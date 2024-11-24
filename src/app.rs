@@ -178,7 +178,6 @@ impl eframe::App for MainApp {
 
         egui::SidePanel::left("Samples")
             .resizable(false)
-            .max_width(300.0)
             .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[0][1]), |ui| {
                 self.ui_samples_panel(ui);
             });
@@ -305,6 +304,12 @@ impl MainApp {
     fn ui_samples_panel(&mut self, ui: &mut egui::Ui) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             let mut hover_count = 0;
+            let plot_size = if ui.ctx().screen_rect().width() > 1000.0 {
+                250.0
+            } else {
+                ui.ctx().screen_rect().width() / 4.0
+            };
+            ui.set_width(plot_size);
             for (name, code) in SAMPLE_CODES_LIST {
                 let selected = self.selected_sample == name;
                 egui::containers::Frame::default()
@@ -313,7 +318,6 @@ impl MainApp {
                     .rounding(10.0)
                     .show(ui, |ui| {
                         let one_sample = ui.vertical_centered(|ui| {
-                            ui.set_height(300.0);
                             ui.vertical_centered(|ui| {
                                 let visualizer = CommonVecVisualizer::new([
                                     [1.0, 0.0, 0.0],
@@ -351,8 +355,8 @@ impl MainApp {
                                     |plot| {
                                         plot.show_axes([false, false])
                                             .id(egui::Id::from(name))
-                                            .width(250.0)
-                                            .height(250.0)
+                                            .width(plot_size)
+                                            .height(plot_size)
                                             .allow_scroll([false, false])
                                             .allow_drag([false, false])
                                             .allow_zoom([false, false])
@@ -360,7 +364,7 @@ impl MainApp {
                                             .show_y(false)
                                     },
                                 );
-                                ui.heading(name);
+                                ui.add(egui::Label::new(name).truncate());
                             })
                         });
 
@@ -404,6 +408,7 @@ impl MainApp {
             if hover_count == 0 {
                 self.hovered_sample = "";
             }
+            ui.shrink_width_to_current();
         });
     }
 
