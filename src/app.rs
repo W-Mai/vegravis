@@ -15,10 +15,11 @@ use super::sample_codes_list::SAMPLE_CODES_LIST;
 use crate::egui::Sense;
 use base64::prelude::*;
 
-const WINDOW_NAMES: [[&str; 2]; 4] = [
+const WINDOW_NAMES: [[&str; 2]; 5] = [
     ["🐑", "Samples"],
     ["", ""],
     ["⚙", "Options"],
+    ["🔢", "Transform"],
     ["📄", "Code"],
 ];
 
@@ -196,16 +197,36 @@ impl eframe::App for MainApp {
             egui::TopBottomPanel::bottom("CodeEditor")
                 .resizable(false)
                 .exact_height(ctx.available_rect().height() / 2.0)
-                .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[3][1]), |ui| {
-                    self.ui_code_editor(ui);
-                });
+                .show_animated(
+                    ctx,
+                    self.panel_status.contains(WINDOW_NAMES[3][1])
+                        || self.panel_status.contains(WINDOW_NAMES[4][1]),
+                    |ui| {
+                        if self.panel_status.contains(WINDOW_NAMES[3][1]) {
+                            self.ui_transform_panel(ui);
+                        }
+                        if self.panel_status.contains(WINDOW_NAMES[4][1]) {
+                            self.ui_code_editor(ui);
+                        }
+                    },
+                );
         } else {
             egui::SidePanel::left("CodeEditor")
                 .resizable(false)
                 .exact_width(ctx.available_rect().width() / 2.0)
-                .show_animated(ctx, self.panel_status.contains(WINDOW_NAMES[3][1]), |ui| {
-                    self.ui_code_editor(ui);
-                });
+                .show_animated(
+                    ctx,
+                    self.panel_status.contains(WINDOW_NAMES[3][1])
+                        || self.panel_status.contains(WINDOW_NAMES[4][1]),
+                    |ui| {
+                        if self.panel_status.contains(WINDOW_NAMES[3][1]) {
+                            self.ui_transform_panel(ui);
+                        }
+                        if self.panel_status.contains(WINDOW_NAMES[4][1]) {
+                            self.ui_code_editor(ui);
+                        }
+                    },
+                );
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
