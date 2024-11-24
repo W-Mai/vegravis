@@ -15,12 +15,13 @@ use super::sample_codes_list::SAMPLE_CODES_LIST;
 use crate::egui::Sense;
 use base64::prelude::*;
 
-const WINDOW_NAMES: [[&str; 2]; 5] = [
+const WINDOW_NAMES: [[&str; 2]; 6] = [
     ["🐑", "Samples"],
     ["", ""],
     ["⚙", "Options"],
     ["🔢", "Transform"],
     ["📄", "Code"],
+    ["ℹ", "About"],
 ];
 
 struct MainAppCache {
@@ -611,9 +612,11 @@ impl MainApp {
             ui.separator();
             ui.heading("Vector Graphics Visualizer");
 
-            if ui.ctx().screen_rect().width() > 400.0 {
-                ui.separator();
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.separator();
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.ctx().screen_rect().width() > 400.0
+                    || self.panel_status.contains(WINDOW_NAMES[5][1])
+                {
                     ui.horizontal_wrapped(|ui| {
                         ui.label(format!("Version: {VERSION}"));
                         ui.hyperlink_to("🌐Web Version", "https://w-mai.github.io/vegravis/");
@@ -622,8 +625,10 @@ impl MainApp {
                             env!("CARGO_PKG_HOMEPAGE"),
                         );
                     });
-                });
-            }
+                } else if ui.add(egui::Button::new("ℹ")).clicked() {
+                    self.panel_status.insert(WINDOW_NAMES[5][1].to_owned());
+                }
+            });
         });
     }
 }
