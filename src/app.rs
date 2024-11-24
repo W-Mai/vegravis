@@ -184,14 +184,13 @@ impl eframe::App for MainApp {
                 self.ui_sample_code_editor(ui);
             });
 
-        egui::Window::new("Options")
-            .open(&mut self.panel_status.contains(WINDOW_NAMES[2][1]))
-            .auto_sized()
-            .default_pos(ctx.available_rect().left_top())
-            .movable(true)
-            .show(ctx, |ui| {
+        egui::TopBottomPanel::top("Options").show_animated(
+            ctx,
+            self.panel_status.contains(WINDOW_NAMES[2][1]),
+            |ui| {
                 self.ui_options_panel(ui);
-            });
+            },
+        );
 
         if ctx.available_rect().aspect_ratio() < 1.0 {
             egui::TopBottomPanel::bottom("CodeEditor")
@@ -430,65 +429,61 @@ impl MainApp {
     }
 
     fn ui_options_panel(&mut self, ui: &mut egui::Ui) {
-        egui::ScrollArea::vertical().show(ui, |ui| {
-            ui.vertical_centered(|ui| {
-                ui.heading("Controls");
-            });
-            ui.horizontal_wrapped(|ui| {
-                ui.add(toggle("LCD Coordinates", &mut self.params.lcd_coords));
-                ui.add(toggle(
-                    "Show Intermediate Dash",
-                    &mut self.params.show_inter_dash,
-                ));
-                ui.add(toggle("Colorful Blocks", &mut self.params.colorful_block));
-                ui.allocate_ui_with_layout(
-                    ui.available_size_before_wrap(),
-                    egui::Layout::left_to_right(egui::Align::Center),
-                    |ui| {
-                        let mut anim_status = self.params.vis_progress_anim;
-                        ui.toggle_value(
-                            &mut anim_status,
-                            if self.params.vis_progress_anim {
-                                "⏸"
-                            } else {
-                                "▶"
-                            },
-                        );
+        ui.horizontal_wrapped(|ui| {
+            ui.allocate_ui_with_layout(
+                egui::Vec2::new(200.0, 20.0),
+                egui::Layout::left_to_right(egui::Align::Center),
+                |ui| {
+                    let mut anim_status = self.params.vis_progress_anim;
+                    ui.toggle_value(
+                        &mut anim_status,
+                        if self.params.vis_progress_anim {
+                            "⏸"
+                        } else {
+                            "▶"
+                        },
+                    );
 
-                        self.params.vis_progress_anim = anim_status;
-                        ui.add(
-                            egui::Slider::new(
-                                &mut self.params.vis_progress,
-                                0..=self.params.vis_progress_max,
-                            )
-                            .text("Progress")
-                            .show_value(true),
-                        );
-                    },
-                );
-            });
-            ui.vertical_centered(|ui| {
-                ui.heading("Transform Matrix");
-                egui_extras::TableBuilder::new(ui)
-                    .columns(egui_extras::Column::auto(), 3)
-                    .body(|mut body| {
-                        for i in 0..3 {
-                            body.row(30.0, |mut row| {
-                                for j in 0..3 {
-                                    row.col(|ui| {
-                                        ui.add(
-                                            egui::DragValue::new(
-                                                &mut self.params.trans_matrix[i][j],
-                                            )
+                    self.params.vis_progress_anim = anim_status;
+                    ui.add(
+                        egui::Slider::new(
+                            &mut self.params.vis_progress,
+                            0..=self.params.vis_progress_max,
+                        )
+                        .text("Progress")
+                        .show_value(true),
+                    );
+                },
+            );
+            ui.add(toggle("LCD Coordinates", &mut self.params.lcd_coords));
+            ui.add(toggle(
+                "Show Intermediate Dash",
+                &mut self.params.show_inter_dash,
+            ));
+            ui.add(toggle("Colorful Blocks", &mut self.params.colorful_block));
+        });
+    }
+
+    fn ui_transform_panel(&mut self, ui: &mut egui::Ui) {
+        ui.vertical_centered(|ui| {
+            ui.heading("Transform Matrix");
+            egui_extras::TableBuilder::new(ui)
+                .columns(egui_extras::Column::auto(), 3)
+                .body(|mut body| {
+                    for i in 0..3 {
+                        body.row(30.0, |mut row| {
+                            for j in 0..3 {
+                                row.col(|ui| {
+                                    ui.add(
+                                        egui::DragValue::new(&mut self.params.trans_matrix[i][j])
                                             .speed(0.01),
-                                        )
-                                        .on_hover_text(format!("m_{i}{j}"));
-                                    });
-                                }
-                            });
-                        }
-                    });
-            });
+                                    )
+                                    .on_hover_text(format!("m_{i}{j}"));
+                                });
+                            }
+                        });
+                    }
+                });
         });
     }
 
