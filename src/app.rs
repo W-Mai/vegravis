@@ -6,7 +6,6 @@ use crate::interfaces::{
 };
 use bincode::{Decode, Encode};
 use eframe::{egui, Storage};
-use egui_extras::{Size, StripBuilder};
 use log::error;
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
@@ -187,7 +186,7 @@ impl eframe::App for MainApp {
 
         egui::Window::new("Options")
             .open(&mut self.panel_status.contains(WINDOW_NAMES[2][1]))
-            .fixed_size([600.0, 200.0])
+            .auto_sized()
             .default_pos(ctx.available_rect().left_top())
             .movable(true)
             .show(ctx, |ui| {
@@ -443,7 +442,7 @@ impl MainApp {
                 ));
                 ui.add(toggle("Colorful Blocks", &mut self.params.colorful_block));
                 ui.allocate_ui_with_layout(
-                    ui.available_size(),
+                    ui.available_size_before_wrap(),
                     egui::Layout::left_to_right(egui::Align::Center),
                     |ui| {
                         let mut anim_status = self.params.vis_progress_anim;
@@ -468,129 +467,28 @@ impl MainApp {
                     },
                 );
             });
-            StripBuilder::new(ui)
-                .size(Size::exact(30.0))
-                .size(Size::remainder())
-                .vertical(|mut strip| {
-                    strip.cell(|ui| {
-                        ui.vertical_centered(|ui| {
-                            ui.heading("Transform Matrix");
-                        });
-                    });
-                    strip.strip(|builder| {
-                        builder
-                            .size(Size::exact(20.0))
-                            .size(Size::exact(20.0))
-                            .size(Size::exact(20.0)) // 3x3 matrix
-                            .vertical(|mut strip| {
-                                strip.strip(|builder| {
-                                    builder
-                                        .size(Size::relative(0.33))
-                                        .size(Size::relative(0.33))
-                                        .size(Size::relative(0.33)) // 3x3 matrix
-                                        .horizontal(|mut strip| {
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[0][0],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[0][1],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[0][2],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                        });
-                                });
-                                strip.strip(|builder| {
-                                    builder
-                                        .size(Size::relative(0.33))
-                                        .size(Size::relative(0.33))
-                                        .size(Size::relative(0.33)) // 3x3 matrix
-                                        .horizontal(|mut strip| {
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[1][0],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[1][1],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[1][2],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                        });
-                                });
-                                strip.strip(|builder| {
-                                    builder
-                                        .size(Size::relative(0.33))
-                                        .size(Size::relative(0.33))
-                                        .size(Size::relative(0.33)) // 3x3 matrix
-                                        .horizontal(|mut strip| {
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[2][0],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[2][1],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                            strip.cell(|ui| {
-                                                ui.add_sized(
-                                                    ui.available_size(),
-                                                    egui::DragValue::new(
-                                                        &mut self.params.trans_matrix[2][2],
-                                                    )
-                                                    .speed(0.01),
-                                                );
-                                            });
-                                        });
-                                });
+            ui.vertical_centered(|ui| {
+                ui.heading("Transform Matrix");
+                egui_extras::TableBuilder::new(ui)
+                    .columns(egui_extras::Column::auto(), 3)
+                    .body(|mut body| {
+                        for i in 0..3 {
+                            body.row(30.0, |mut row| {
+                                for j in 0..3 {
+                                    row.col(|ui| {
+                                        ui.add(
+                                            egui::DragValue::new(
+                                                &mut self.params.trans_matrix[i][j],
+                                            )
+                                            .speed(0.01),
+                                        )
+                                        .on_hover_text(format!("m_{i}{j}"));
+                                    });
+                                }
                             });
+                        }
                     });
-                });
+            });
         });
     }
 
