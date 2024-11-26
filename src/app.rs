@@ -283,6 +283,12 @@ impl MainApp {
                         ui.separator();
                         continue;
                     }
+
+                    // only show the side panel when the screen is large
+                    if ui.ctx().screen_rect().width() > 600.0 && name == WINDOW_NAMES[5][1] {
+                        continue;
+                    }
+
                     let mut is_open = self.panel_status.contains(name);
                     ui.toggle_value(
                         &mut is_open,
@@ -610,11 +616,15 @@ impl MainApp {
         ui.horizontal_wrapped(|ui| {
             egui::widgets::global_theme_preference_switch(ui);
             ui.separator();
-            ui.heading("Vector Graphics Visualizer");
+            if ui.ctx().screen_rect().width() > 300.0 {
+                ui.heading("Vector Graphics Visualizer");
+            } else {
+                ui.heading("Vegravis");
+            }
 
             ui.separator();
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.ctx().screen_rect().width() > 400.0
+                if ui.ctx().screen_rect().width() > 600.0
                     || self.panel_status.contains(WINDOW_NAMES[5][1])
                 {
                     ui.horizontal_wrapped(|ui| {
