@@ -21,9 +21,9 @@ use getset::{CopyGetters, Getters, MutGetters, Setters};
 use crate::any_data::AnyData;
 use crate::interfaces::{ICommandDescription, ICommandSyntax, IVisData};
 
+use super::VecLineData;
 /// Self
 use super::syntax::CommonVecOpSyntax;
-use super::VecLineData;
 use op_cubi::CommonOpCUBI;
 use op_end::CommonOpEND;
 use op_line::CommonOpLINE;

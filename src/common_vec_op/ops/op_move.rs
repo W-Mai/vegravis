@@ -9,7 +9,7 @@ use crate::any_data::AnyData;
 use crate::interfaces::ICommandDescription;
 
 /// Self
-use super::{process_point, GenerateCtx, VecLineData};
+use super::{GenerateCtx, VecLineData, process_point};
 
 pub struct CommonOpMOVE;
 

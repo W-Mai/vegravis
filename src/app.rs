@@ -1,11 +1,11 @@
 use crate::any_data::AnyData;
 use crate::common_vec_op::{CodeParser, CommonVecVisualizer, VecLineGen};
-use crate::cus_component::{toggle, CodeEditor};
+use crate::cus_component::{CodeEditor, toggle};
 use crate::interfaces::{
     ICodeEditor, IParser, IVisData, IVisDataGenerator, IVisualizer, ParseError,
 };
 use bincode::{Decode, Encode};
-use eframe::{egui, Storage};
+use eframe::{Storage, egui};
 use log::error;
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::Duration;
@@ -346,7 +346,7 @@ impl MainApp {
                                         error!("Error: {:?}", e);
                                         unreachable!("The sample code can't go wrong.");
                                     });
-                                    let lines = vlg.gen(0..vlg.len() as i64);
+                                    let lines = vlg.generate(0..vlg.len() as i64);
                                     v.lines = lines;
                                 }
 
@@ -570,7 +570,7 @@ impl MainApp {
                             self.params.vis_progress = ops_count;
                         }
 
-                        let parsed = vlg.gen(0..self.params.vis_progress);
+                        let parsed = vlg.generate(0..self.params.vis_progress);
 
                         self.cache.lines = parsed.clone();
                         self.cache.code = self.code.clone::<String>();

@@ -123,7 +123,7 @@ pub trait ICommandSyntax {
 }
 
 pub trait IParser<'a> {
-    fn new(code: AnyData, gen: &'a mut dyn IVisDataGenerator) -> Self;
+    fn new(code: AnyData, generator: &'a mut dyn IVisDataGenerator) -> Self;
 
     fn parse(&'a mut self) -> Result<&'a mut dyn IVisDataGenerator, ParseError>;
 }
@@ -140,7 +140,7 @@ pub trait IEncoder {
 pub trait IVisDataGenerator {
     fn add(&mut self, op: Command);
 
-    fn gen(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>>;
+    fn generate(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>>;
 
     fn len(&self) -> usize;
 

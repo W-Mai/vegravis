@@ -80,7 +80,7 @@ impl IVisDataGenerator for VecLineGen {
         self.ops.push(op);
     }
 
-    fn gen(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>> {
+    fn generate(&self, range: Range<i64>) -> Vec<Vec<Box<dyn IVisData>>> {
         let mut gen_ctx = AnyData::new(GenerateCtx::default());
         let mut points_total = vec![];
         let mut points: Vec<Box<dyn IVisData>> = vec![];

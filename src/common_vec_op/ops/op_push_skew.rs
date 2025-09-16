@@ -6,7 +6,7 @@ use crate::any_data::AnyData;
 use crate::interfaces::ICommandDescription;
 
 /// Self
-use super::{calc_trans_stack, GenerateCtx};
+use super::{GenerateCtx, calc_trans_stack};
 
 pub struct CommonOpPushSkew;
 

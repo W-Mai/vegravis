@@ -8,10 +8,11 @@ use egui_plot::{Line, LineStyle, Plot};
 
 /// Crates
 use crate::interfaces::{IVisData, IVisualizer};
-use crate::COLOR_PALETTE;
 
 /// Self
 use super::VecLineData;
+
+use crate::COLOR_PALETTE;
 
 pub struct CommonVecVisualizer {
     t: [[f64; 3]; 3],

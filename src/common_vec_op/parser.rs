@@ -6,7 +6,7 @@ pub struct CodeParser<'a> {
     pub code: String,
     pub cursor: Cursor,
 
-    gen: &'a mut dyn IVisDataGenerator,
+    generator: &'a mut dyn IVisDataGenerator,
 }
 
 #[derive(Debug, Clone)]
@@ -53,11 +53,11 @@ struct Token {
 type ReadResult = Result<Token, ParseError>;
 
 impl<'a> IParser<'a> for CodeParser<'a> {
-    fn new(code: AnyData, gen: &'a mut dyn IVisDataGenerator) -> Self {
+    fn new(code: AnyData, generator: &'a mut dyn IVisDataGenerator) -> Self {
         Self {
             code: code.cast_ref::<String>().clone(),
             cursor: Cursor::default(),
-            gen,
+            generator,
         }
     }
 
@@ -66,7 +66,7 @@ impl<'a> IParser<'a> for CodeParser<'a> {
         while self.curr_pos() < self.code.len() {
             self.parse_op()?;
         }
-        Ok(self.gen)
+        Ok(self.generator)
     }
 }
 
@@ -282,7 +282,7 @@ impl CodeParser<'_> {
         self.eat_comma()?;
 
         let cmd = self
-            .gen
+            .generator
             .command_syntax()
             .match_command(ident_string.as_str());
         match cmd {
@@ -291,7 +291,7 @@ impl CodeParser<'_> {
                 let params = AnyData::convert_to_vec(params);
                 cmd.pack(params);
 
-                self.gen.add(cmd);
+                self.generator.add(cmd);
                 Ok(())
             }
             Err(maybe_cmd) => {

@@ -36,6 +36,6 @@ fn toggle_ui(ui: &mut egui::Ui, label: impl Into<RichText>, on: &mut bool) -> eg
     response
 }
 
-pub fn toggle<'a>(label: impl Into<RichText> + 'a, on: &'a mut bool) -> impl egui::Widget + '_ {
+pub fn toggle<'a>(label: impl Into<RichText> + 'a, on: &'a mut bool) -> impl egui::Widget + 'a {
     move |ui: &mut egui::Ui| toggle_ui(ui, label, on)
 }
