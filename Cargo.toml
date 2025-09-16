@@ -23,7 +23,7 @@ eula = false
 ecolor = "0.29.1"
 egui_plot = "0.29.0"
 egui_extras = "0.29.1"
-egui_code_editor = "0.2.10"
+egui_code_editor = "=0.2.10"
 
 log = "0.4.19"
 
