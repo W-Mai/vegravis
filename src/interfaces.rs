@@ -112,7 +112,7 @@ pub trait ICommandSyntax {
                 dists.push((levenshtein(cmd, name), name));
             }
         }
-        dists.sort_by(|a, b| a.0.cmp(&b.0));
+        dists.sort_by_key(|item| item.0);
         let mut dists = dists.into_iter();
         let (dist, op) = dists.next().unwrap();
         if dist >= 3 {

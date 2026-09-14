@@ -73,9 +73,9 @@ impl IVisualizer for CommonVecVisualizer {
                     let drawn_lines = Line::new(vec![last_line_end_pos, curr_line_start_pos])
                         .style(LineStyle::dashed_dense());
                     plot_ui.line(if has_error {
-                        drawn_lines.stroke(Stroke::new(2.0, egui::Color32::LIGHT_RED))
+                        drawn_lines.stroke(Stroke::new(2.0_f32, egui::Color32::LIGHT_RED))
                     } else {
-                        drawn_lines.stroke(Stroke::new(1.0, egui::Color32::LIGHT_GREEN))
+                        drawn_lines.stroke(Stroke::new(1.0_f32, egui::Color32::LIGHT_GREEN))
                     });
                 }
                 last_line_end = Box::new(*points.last().unwrap());
@@ -85,9 +85,9 @@ impl IVisualizer for CommonVecVisualizer {
                     .collect();
                 let drawn_lines = Line::new(points);
                 plot_ui.line(if has_error {
-                    drawn_lines.color(egui::Color32::DARK_RED).width(5.0)
+                    drawn_lines.color(egui::Color32::DARK_RED).width(5.0_f32)
                 } else {
-                    drawn_lines.color(COLOR_PALETTE[color_index]).width(2.0)
+                    drawn_lines.color(COLOR_PALETTE[color_index]).width(2.0_f32)
                 });
 
                 if colorful_block {

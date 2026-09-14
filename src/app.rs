@@ -405,7 +405,7 @@ impl MainApp {
                                 rect,
                                 10.0,
                                 egui::Color32::TRANSPARENT,
-                                egui::Stroke::new(2.0, ui.style().visuals.hyperlink_color),
+                                egui::Stroke::new(2.0_f32, ui.style().visuals.hyperlink_color),
                             );
                             painter.set_opacity(0.3);
                             painter.rect(rect, 10.0, visuals.text_color(), egui::Stroke::NONE);
