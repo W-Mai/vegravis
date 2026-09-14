@@ -2,7 +2,7 @@
 name = "vegravis"
 version = "0.4.2"
 edition = "2024"
-homepage = "https://w-mai.github.io/vegravis"
+homepage = "https://v.to01.icu/"
 repository = "https://github.com/W-Mai/vegravis"
 readme = "README.md"
 license-file = "LICENSE"
